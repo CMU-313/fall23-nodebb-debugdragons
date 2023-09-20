@@ -275,7 +275,7 @@ describe('User', () => {
                 done()
             })
         })
-    })
+    });
 
     describe('.getModeratorUids()', () => {
         before((done) => {
