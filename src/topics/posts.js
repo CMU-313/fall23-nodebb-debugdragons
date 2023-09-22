@@ -249,6 +249,9 @@ module.exports = function (Topics) {
             ], [postData.timestamp, votes], postData.pid);
         }
         await Topics.increasePostCount(tid);
+        if (postData.uid == User.isInstructor) {
+            await Topics.increaseInstructorCount(postData.uid);
+        }
         await db.sortedSetIncrBy(`tid:${tid}:posters`, 1, postData.uid);
         const posterCount = await db.sortedSetCard(`tid:${tid}:posters`);
         await Topics.setTopicField(tid, 'postercount', posterCount);
@@ -261,6 +264,9 @@ module.exports = function (Topics) {
             `tid:${tid}:posts:votes`,
         ], postData.pid);
         await Topics.decreasePostCount(tid);
+        if (postData.uid == User.isInstructor) {
+            await Topics.decreaseInstructorCount(postData.uid);
+        }
         await db.sortedSetIncrBy(`tid:${tid}:posters`, -1, postData.uid);
         await db.sortedSetsRemoveRangeByScore([`tid:${tid}:posters`], '-inf', 0);
         const posterCount = await db.sortedSetCard(`tid:${tid}:posters`);
