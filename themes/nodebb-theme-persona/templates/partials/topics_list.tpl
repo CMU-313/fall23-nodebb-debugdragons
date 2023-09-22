@@ -115,7 +115,7 @@
             <small>[[global:views]]</small>
         </div>
 
-        {{{ if topic.icomment }}}
+        {{{ if topic.instructorCount }}}
         <div class="col-md-1 hidden-sm hidden-xs stats stats-instructor-comments">
             <!-- Check if there are instructor comments in this topic -->
             <div class="custom-icon">

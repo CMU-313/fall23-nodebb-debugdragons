@@ -17,7 +17,7 @@ export type TopicObjectCoreProperties = {
   bookmark: number;
   unreplied: boolean;
   icons: string[];
-  icomment: boolean;
+  instructorCount: number;
 };
 
 export type TopicObjectOptionalProperties = {
