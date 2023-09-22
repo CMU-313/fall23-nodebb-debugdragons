@@ -136,6 +136,10 @@ User.getUsernameByEmail = async function (email) {
     return await User.getUserField(uid, 'username');
 };
 
+User.getAccountTypeByUid = async function (uid) {
+    return User.getUserField(uid, 'accounttype');
+};
+
 User.isModerator = async function (uid, cid) {
     return await privileges.users.isModerator(uid, cid);
 };
@@ -151,6 +155,11 @@ User.isAdministrator = async function (uid) {
 
 User.isGlobalModerator = async function (uid) {
     return await privileges.users.isGlobalModerator(uid);
+};
+
+User.isInstructor = async function (uid) {
+    const accounttype = await User.getAccountTypeByUid(uid);
+    return accounttype === 'instructor';
 };
 
 User.getPrivileges = async function (uid) {

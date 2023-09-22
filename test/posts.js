@@ -161,130 +161,7 @@ describe('Post\'s', () => {
         });
     });
 
-    describe('voting', () => {
-        it('should fail to upvote post if group does not have upvote permission', async () => {
-            await privileges.categories.rescind(['groups:posts:upvote', 'groups:posts:downvote'], cid, 'registered-users');
-            let err;
-            try {
-                await apiPosts.upvote({ uid: voterUid }, { pid: postData.pid, room_id: 'topic_1' });
-            } catch (_err) {
-                err = _err;
-            }
-            assert.equal(err.message, '[[error:no-privileges]]');
-            try {
-                await apiPosts.downvote({ uid: voterUid }, { pid: postData.pid, room_id: 'topic_1' });
-            } catch (_err) {
-                err = _err;
-            }
-            assert.equal(err.message, '[[error:no-privileges]]');
-            await privileges.categories.give(['groups:posts:upvote', 'groups:posts:downvote'], cid, 'registered-users');
-        });
-
-        it('should upvote a post', async () => {
-            const result = await apiPosts.upvote({ uid: voterUid }, { pid: postData.pid, room_id: 'topic_1' });
-            assert.equal(result.post.upvotes, 1);
-            assert.equal(result.post.downvotes, 0);
-            assert.equal(result.post.votes, 1);
-            assert.equal(result.user.reputation, 1);
-            const data = await posts.hasVoted(postData.pid, voterUid);
-            assert.equal(data.upvoted, true);
-            assert.equal(data.downvoted, false);
-        });
-
-        it('should add the pid to the :votes sorted set for that user', async () => {
-            const cid = await posts.getCidByPid(postData.pid);
-            const { uid, pid } = postData;
-
-            const score = await db.sortedSetScore(`cid:${cid}:uid:${uid}:pids:votes`, pid);
-            assert.strictEqual(score, 1);
-        });
-
-        it('should get voters', (done) => {
-            socketPosts.getVoters({ uid: globalModUid }, { pid: postData.pid, cid: cid }, (err, data) => {
-                assert.ifError(err);
-                assert.equal(data.upvoteCount, 1);
-                assert.equal(data.downvoteCount, 0);
-                assert(Array.isArray(data.upvoters));
-                assert.equal(data.upvoters[0].username, 'upvoter');
-                done();
-            });
-        });
-
-        it('should get upvoters', (done) => {
-            socketPosts.getUpvoters({ uid: globalModUid }, [postData.pid], (err, data) => {
-                assert.ifError(err);
-                assert.equal(data[0].otherCount, 0);
-                assert.equal(data[0].usernames, 'upvoter');
-                done();
-            });
-        });
-
-        it('should unvote a post', async () => {
-            const result = await apiPosts.unvote({ uid: voterUid }, { pid: postData.pid, room_id: 'topic_1' });
-            assert.equal(result.post.upvotes, 0);
-            assert.equal(result.post.downvotes, 0);
-            assert.equal(result.post.votes, 0);
-            assert.equal(result.user.reputation, 0);
-            const data = await posts.hasVoted(postData.pid, voterUid);
-            assert.equal(data.upvoted, false);
-            assert.equal(data.downvoted, false);
-        });
-
-        it('should downvote a post', async () => {
-            const result = await apiPosts.downvote({ uid: voterUid }, { pid: postData.pid, room_id: 'topic_1' });
-            assert.equal(result.post.upvotes, 0);
-            assert.equal(result.post.downvotes, 1);
-            assert.equal(result.post.votes, -1);
-            assert.equal(result.user.reputation, -1);
-            const data = await posts.hasVoted(postData.pid, voterUid);
-            assert.equal(data.upvoted, false);
-            assert.equal(data.downvoted, true);
-        });
-
-        it('should add the pid to the :votes sorted set for that user', async () => {
-            const cid = await posts.getCidByPid(postData.pid);
-            const { uid, pid } = postData;
-
-            const score = await db.sortedSetScore(`cid:${cid}:uid:${uid}:pids:votes`, pid);
-            assert.strictEqual(score, -1);
-        });
-
-        it('should prevent downvoting more than total daily limit', async () => {
-            const oldValue = meta.config.downvotesPerDay;
-            meta.config.downvotesPerDay = 1;
-            let err;
-            const p1 = await topics.reply({
-                uid: voteeUid,
-                tid: topicData.tid,
-                content: 'raw content',
-            });
-            try {
-                await apiPosts.downvote({ uid: voterUid }, { pid: p1.pid, room_id: 'topic_1' });
-            } catch (_err) {
-                err = _err;
-            }
-            assert.equal(err.message, '[[error:too-many-downvotes-today, 1]]');
-            meta.config.downvotesPerDay = oldValue;
-        });
-
-        it('should prevent downvoting target user more than total daily limit', async () => {
-            const oldValue = meta.config.downvotesPerUserPerDay;
-            meta.config.downvotesPerUserPerDay = 1;
-            let err;
-            const p1 = await topics.reply({
-                uid: voteeUid,
-                tid: topicData.tid,
-                content: 'raw content',
-            });
-            try {
-                await apiPosts.downvote({ uid: voterUid }, { pid: p1.pid, room_id: 'topic_1' });
-            } catch (_err) {
-                err = _err;
-            }
-            assert.equal(err.message, '[[error:too-many-downvotes-today-user, 1]]');
-            meta.config.downvotesPerUserPerDay = oldValue;
-        });
-    });
+    // Removed all tests for voting because Upvote/Downvote has been repurposed to Endorsing for Instructors.
 
     describe('bookmarking', () => {
         it('should bookmark a post', async () => {
@@ -899,7 +776,7 @@ describe('Post\'s', () => {
         it('should get pid index', (done) => {
             socketPosts.getPidIndex({ uid: voterUid }, { pid: pid, tid: topicData.tid, topicPostSort: 'oldest_to_newest' }, (err, index) => {
                 assert.ifError(err);
-                assert.equal(index, 4);
+                assert.equal(index, 2);
                 done();
             });
         });
