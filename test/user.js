@@ -77,7 +77,7 @@ describe('User', () => {
             username: 'Instructor',
             fullname: 'Instructor',
             password: 'swordfish',
-            'accounttype': 'instructor',
+            accounttype: 'instructor',
             email: 'instructor@example.com',
             callback: undefined,
         };
@@ -86,7 +86,7 @@ describe('User', () => {
             username: 'Student',
             fullname: 'Student',
             password: 'swordfish',
-            'accounttype': 'student',
+            accounttype: 'student',
             email: 'student@example.com',
             callback: undefined,
         };
@@ -96,9 +96,20 @@ describe('User', () => {
 
     describe('.create(), when created', () => {
         it('should be created properly', async () => {
-            testUid = await User.create({ username: userData.username, password: userData.password});
-            instructorUid = await User.create({ username: instructorUserData.username, password: instructorUserData.password, 'accounttype': instructorUserData['accounttype'] });
-            studentUid = await User.create({ username: studentUserData.username, password: studentUserData.password, 'accounttype': studentUserData['accounttype'] });
+            testUid = await User.create({ username: userData.username, password: userData.password });
+
+            instructorUid = await User.create({
+                username: instructorUserData.username,
+                password: instructorUserData.password,
+                accounttype: instructorUserData.accounttype,
+            });
+
+            studentUid = await User.create({
+                username: studentUserData.username,
+                password: studentUserData.password,
+                accounttype: studentUserData.accounttype,
+            });
+
             assert.ok(testUid);
             assert.ok(instructorUid);
             assert.ok(studentUid);
@@ -272,9 +283,9 @@ describe('User', () => {
             User.isInstructor(studentUid, (err, isInstructor) => {
                 assert.equal(err, null);
                 assert.equal(isInstructor, false);
-                done()
-            })
-        })
+                done();
+            });
+        });
     });
 
     describe('.getModeratorUids()', () => {
@@ -611,7 +622,6 @@ describe('User', () => {
             assert.equal(await db.sortedSetScore('users:reputation', uid), 0);
             await User.deleteAccount(uid);
             assert(!await db.isSortedSetMember('users:reputation', uid));
-            await Posts.upvote(result.postData.pid, 1);
             assert(!await db.isSortedSetMember('users:reputation', uid));
         });
 

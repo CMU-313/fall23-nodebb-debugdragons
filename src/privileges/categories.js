@@ -140,6 +140,14 @@ privsCategories.can = async function (privilege, cid, uid) {
         user.isAdministrator(uid),
         privsCategories.isUserAllowedTo(privilege, cid, uid),
     ]);
+
+    // For Endorse Answers Only.
+    let isInstructor;
+    if (privilege === 'posts:upvote') {
+        isInstructor = await user.isInstructor(uid);
+        return !disabled && (isInstructor || isAdmin);
+    }
+
     return !disabled && (isAllowed || isAdmin);
 };
 
