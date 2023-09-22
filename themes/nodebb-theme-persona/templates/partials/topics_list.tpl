@@ -1,3 +1,26 @@
+<!DOCTYPE html>
+<head>
+    <!-- Other head content -->
+
+    <style>
+        .custom-icon {
+            background-color: lightblue;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+        }
+
+        .icon-letter {
+            font-family: sans-serif;
+            font-size: 24px;
+            color: white;
+        }
+    </style>
+</head>
+
 <ul component="category" class="topic-list" itemscope itemtype="http://www.schema.org/ItemList" data-nextstart="{nextStart}" data-set="{set}">
     {{{each topics}}}
     <li component="category/topic" class="row clearfix category-item {function.generateTopicClass}" <!-- IMPORT partials/data/category.tpl -->>
@@ -73,6 +96,13 @@
 
         <div class="mobile-stat col-xs-2 visible-xs text-right">
             <span class="human-readable-number">{topics.postcount}</span> <a href="{config.relative_path}/topic/{topics.slug}/{topics.teaser.index}"><i class="fa fa-arrow-circle-right"></i></a>
+        </div>
+
+        <div class="col-md-1 hidden-sm hidden-xs stats stats-instructor-comments">
+            <!-- Check if there are instructor comments in this topic -->
+            <div class="custom-icon">
+                <span class="icon-letter">i</span>
+            </div>
         </div>
 
         <div class="col-md-1 hidden-sm hidden-xs stats stats-votes">
