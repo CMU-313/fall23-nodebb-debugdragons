@@ -78,7 +78,8 @@
         <div class="col-md-1 hidden-sm hidden-xs stats stats-votes">
             <!-- IF !reputation:disabled -->
             <span class="human-readable-number" title="{topics.votes}">{topics.votes}</span><br />
-            <small>[[global:votes]]</small>
+            <!-- <small>[[global:votes]]</small> --> 
+            <small>ENDORSEMENTS</small>
             <!-- END -->
         </div>
 
