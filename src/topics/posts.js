@@ -298,6 +298,14 @@ module.exports = function (Topics) {
         incrementFieldAndUpdateSortedSet(tid, 'viewcount', 1, ['topics:views', `cid:${cid}:tids:views`]);
     };
 
+    Topics.increaseInstructorCount = async function (tid) {
+        incrementFieldAndUpdateSortedSet(tid, 'instructorcount', +1, 'topics:posts');
+    };
+
+    Topics.decreaseInstructorCount = async function (tid) {
+        incrementFieldAndUpdateSortedSet(tid, 'instructorcount', -1, 'topics:posts');
+    };
+
     async function incrementFieldAndUpdateSortedSet(tid, field, by, set) {
         const value = await db.incrObjectFieldBy(`topic:${tid}`, field, by);
         await db[Array.isArray(set) ? 'sortedSetsAdd' : 'sortedSetAdd'](set, value, tid);

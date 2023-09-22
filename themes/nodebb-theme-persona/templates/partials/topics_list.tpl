@@ -98,13 +98,6 @@
             <span class="human-readable-number">{topics.postcount}</span> <a href="{config.relative_path}/topic/{topics.slug}/{topics.teaser.index}"><i class="fa fa-arrow-circle-right"></i></a>
         </div>
 
-        <div class="col-md-1 hidden-sm hidden-xs stats stats-instructor-comments">
-            <!-- Check if there are instructor comments in this topic -->
-            <div class="custom-icon">
-                <span class="icon-letter">i</span>
-            </div>
-        </div>
-
         <div class="col-md-1 hidden-sm hidden-xs stats stats-votes">
             <!-- IF !reputation:disabled -->
             <span class="human-readable-number" title="{topics.votes}">{topics.votes}</span><br />
@@ -121,6 +114,15 @@
             <span class="human-readable-number" title="{topics.viewcount}">{topics.viewcount}</span><br />
             <small>[[global:views]]</small>
         </div>
+
+        {{{ if topic.instructorcount }}}
+        <div class="col-md-1 hidden-sm hidden-xs stats stats-instructor-comments">
+            <!-- Check if there are instructor comments in this topic -->
+            <div class="custom-icon">
+                <span class="icon-letter">i</span>
+            </div>
+        </div>
+        {{{ end }}}
 
         <div class="col-md-3 col-sm-3 teaser hidden-xs" component="topic/teaser">
             <div class="card background-link-container" style="border-color: {topics.category.bgColor}">
