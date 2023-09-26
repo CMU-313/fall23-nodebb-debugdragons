@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 <head>
-    <!-- Other head content -->
-
     <style>
         .custom-icon {
             background-color: lightblue;
@@ -115,7 +113,7 @@
             <small>[[global:views]]</small>
         </div>
 
-        {{{ if topic.instructorcount }}}
+        {{{ if topics.instructorcount }}}
         <div class="col-md-1 hidden-sm hidden-xs stats stats-instructor-comments">
             <!-- Check if there are instructor comments in this topic -->
             <div class="custom-icon">

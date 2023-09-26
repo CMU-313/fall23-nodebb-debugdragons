@@ -249,7 +249,7 @@ module.exports = function (Topics) {
             ], [postData.timestamp, votes], postData.pid);
         }
         await Topics.increasePostCount(tid);
-        if (User.isInstructor(postData.uid)) {
+        if (await user.isInstructor(postData.uid)) {
             await Topics.increaseInstructorCount(tid);
         }
         await db.sortedSetIncrBy(`tid:${tid}:posters`, 1, postData.uid);
@@ -264,7 +264,7 @@ module.exports = function (Topics) {
             `tid:${tid}:posts:votes`,
         ], postData.pid);
         await Topics.decreasePostCount(tid);
-        if (User.isInstructor(postData.uid)) {
+        if (user.isInstructor(postData.uid)) {
             await Topics.decreaseInstructorCount(tid);
         }
         await db.sortedSetIncrBy(`tid:${tid}:posters`, -1, postData.uid);
@@ -299,11 +299,11 @@ module.exports = function (Topics) {
     };
 
     Topics.increaseInstructorCount = async function (tid) {
-        incrementFieldAndUpdateSortedSet(tid, 'instructorcount', +1, 'topics:posts');
+        await db.incrObjectFieldBy(`topic:${tid}`, 'instructorcount', 1);
     };
 
     Topics.decreaseInstructorCount = async function (tid) {
-        incrementFieldAndUpdateSortedSet(tid, 'instructorcount', -1, 'topics:posts');
+        await db.incrObjectFieldBy(`topic:${tid}`, 'instructorcount', -1);
     };
 
     async function incrementFieldAndUpdateSortedSet(tid, field, by, set) {
