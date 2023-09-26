@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <head>
-    <!-- Other head content -->
-
     <style>
-        .custom-icon {
+        .instructor-comment-icon {
             background-color: lightblue;
             width: 40px;
             height: 40px;
@@ -12,7 +10,6 @@
             align-items: center;
             border-radius: 50%;
         }
-
         .icon-letter {
             font-family: sans-serif;
             font-size: 24px;
@@ -30,7 +27,8 @@
         <meta itemprop="position" content="{../index}" />
         <a id="{../index}" data-index="{../index}" component="topic/anchor"></a>
 
-        <div class="col-md-6 col-sm-9 col-xs-10 content">
+        <!-- Edit this part to change the layout/spacing/formatting of the topic -->
+        <div class="col-md-6 col-sm-9 col-xs-10 content">   
             <div class="avatar pull-left">
                 <!-- IF showSelect -->
                 <div class="select" component="topic/select">
@@ -115,13 +113,15 @@
             <small>[[global:views]]</small>
         </div>
 
-        {{{ if topic.instructorcount }}}
+        {{{ if !topic.instructorcount }}}
         <div class="col-md-1 hidden-sm hidden-xs stats stats-instructor-comments">
             <!-- Check if there are instructor comments in this topic -->
-            <div class="custom-icon">
+            <div class="instructor-comment-icon">
                 <span class="icon-letter">i</span>
             </div>
         </div>
+        {{{ else }}}
+
         {{{ end }}}
 
         <div class="col-md-3 col-sm-3 teaser hidden-xs" component="topic/teaser">
