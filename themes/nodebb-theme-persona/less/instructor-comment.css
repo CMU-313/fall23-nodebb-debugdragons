@@ -1,0 +1,16 @@
+/* Fix it to use the external calling (and also make it in .less format */ 
+.instructor-comment-icon {
+    background-color: lightblue;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+}
+
+.icon-letter {
+    font-family: sans-serif;
+    font-size: 24px;
+    color: white;
+}

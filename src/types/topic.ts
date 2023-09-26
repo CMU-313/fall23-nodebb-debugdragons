@@ -67,6 +67,7 @@ export type TopicSlimProperties = {
   votes: string;
   teaserPid: number | string;
   thumbs: Thumb[];
+  instructorcount: number;
 };
 
 export type Thumb = {
