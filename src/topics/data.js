@@ -12,7 +12,7 @@ const intFields = [
     'tid', 'cid', 'uid', 'mainPid', 'postcount',
     'viewcount', 'postercount', 'deleted', 'locked', 'pinned',
     'pinExpiry', 'timestamp', 'upvotes', 'downvotes', 'lastposttime',
-    'deleterUid',
+    'deleterUid', 'instructorcount',
 ];
 
 module.exports = function (Topics) {
@@ -25,7 +25,6 @@ module.exports = function (Topics) {
         if (fields.includes('scheduled') && !fields.includes('timestamp')) {
             fields.push('timestamp');
         }
-
         const keys = tids.map(tid => `topic:${tid}`);
         const topics = await db.getObjects(keys, fields);
         const result = await plugins.hooks.fire('filter:topic.getFields', {

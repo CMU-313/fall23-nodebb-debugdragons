@@ -1,3 +1,23 @@
+<!DOCTYPE html>
+<head>
+    <style>
+        .instructor-comment-icon {
+            background-color: lightblue;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+        }
+        .icon-letter {
+            font-family: sans-serif;
+            font-size: 24px;
+            color: white;
+        }
+    </style>
+</head>
+
 <ul component="category" class="topic-list" itemscope itemtype="http://www.schema.org/ItemList" data-nextstart="{nextStart}" data-set="{set}">
     {{{each topics}}}
     <li component="category/topic" class="row clearfix category-item {function.generateTopicClass}" <!-- IMPORT partials/data/category.tpl -->>
@@ -7,7 +27,8 @@
         <meta itemprop="position" content="{../index}" />
         <a id="{../index}" data-index="{../index}" component="topic/anchor"></a>
 
-        <div class="col-md-6 col-sm-9 col-xs-10 content">
+        <!-- Edit this part to change the layout/spacing/formatting of the topic -->
+        <div class="col-md-6 col-sm-9 col-xs-10 content">   
             <div class="avatar pull-left">
                 <!-- IF showSelect -->
                 <div class="select" component="topic/select">
@@ -91,6 +112,17 @@
             <span class="human-readable-number" title="{topics.viewcount}">{topics.viewcount}</span><br />
             <small>[[global:views]]</small>
         </div>
+
+        {{{ if topics.instructorcount }}}
+        <div class="col-md-1 hidden-sm hidden-xs stats stats-instructor-comments">
+            <!-- Check if there are instructor comments in this topic -->
+            <div class="instructor-comment-icon">
+                <span class="icon-letter">i</span>
+            </div>
+        </div>
+        {{{ else }}}
+
+        {{{ end }}}
 
         <div class="col-md-3 col-sm-3 teaser hidden-xs" component="topic/teaser">
             <div class="card background-link-container" style="border-color: {topics.category.bgColor}">
