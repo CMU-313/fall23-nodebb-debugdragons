@@ -90,14 +90,15 @@ describe('feeds', () => {
         });
     });
 
-    it('should redirect if we do not have read privilege', async () => {
-        privileges.categories.rescind(['groups:topics:read'], cid, 'guests', () => {
+    it('should redirect if we do not have read privilege', (done) => {
+        privileges.categories.rescind(['groups:topics:read'], cid, 'guests', (err) => {
+            assert.ifError(err);
             request(`${nconf.get('url')}/topic/${tid}.rss`, (err, res, body) => {
                 assert.ifError(err);
                 assert.equal(res.statusCode, 200);
                 assert(body);
                 assert(body.includes('Login to your account'));
-                privileges.categories.give(['groups:topics:read'], cid, 'guests');
+                privileges.categories.give(['groups:topics:read'], cid, 'guests', done);
             });
         });
     });
@@ -110,14 +111,15 @@ describe('feeds', () => {
         });
     });
 
-    it('should redirect if we do not have read privilege', async () => {
-        privileges.categories.rescind(['groups:read'], cid, 'guests', () => {
+    it('should redirect if we do not have read privilege', (done) => {
+        privileges.categories.rescind(['groups:read'], cid, 'guests', (err) => {
+            assert.ifError(err);
             request(`${nconf.get('url')}/category/${cid}.rss`, (err, res, body) => {
                 assert.ifError(err);
                 assert.equal(res.statusCode, 200);
                 assert(body);
                 assert(body.includes('Login to your account'));
-                privileges.categories.give(['groups:read'], cid, 'guests');
+                privileges.categories.give(['groups:read'], cid, 'guests', done);
             });
         });
     });
@@ -139,8 +141,9 @@ describe('feeds', () => {
         });
 
 
-        it('should not allow access if uid or token is missing', async () => {
-            privileges.categories.rescind(['groups:read'], cid, 'guests', () => {
+        it('should not allow access if uid or token is missing', (done) => {
+            privileges.categories.rescind(['groups:read'], cid, 'guests', (err) => {
+                assert.ifError(err);
                 async.parallel({
                     test1: function (next) {
                         request(`${nconf.get('url')}/category/${cid}.rss?uid=${fooUid}`, { }, next);
@@ -154,6 +157,7 @@ describe('feeds', () => {
                     assert.equal(results.test2[0].statusCode, 200);
                     assert(results.test1[0].body.includes('Login to your account'));
                     assert(results.test2[0].body.includes('Login to your account'));
+                    done();
                 });
             });
         });
@@ -180,12 +184,14 @@ describe('feeds', () => {
             });
         });
 
-        it('should not allow access if token is correct but has no privilege', async () => {
-            privileges.categories.rescind(['groups:read'], cid, 'registered-users', () => {
+        it('should not allow access if token is correct but has no privilege', (done) => {
+            privileges.categories.rescind(['groups:read'], cid, 'registered-users', (err) => {
+                assert.ifError(err);
                 request(`${nconf.get('url')}/category/${cid}.rss?uid=${fooUid}&token=${rssToken}`, { }, (err, res, body) => {
                     assert.ifError(err);
                     assert.equal(res.statusCode, 200);
                     assert(body.includes('Login to your account'));
+                    done();
                 });
             });
         });
