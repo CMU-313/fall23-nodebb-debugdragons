@@ -268,6 +268,7 @@ describe('Post\'s', () => {
             ], done);
         });
 
+
         it('should restore a post', async () => {
             await apiPosts.restore({ uid: voterUid }, { pid: replyPid, tid: tid });
             const isDeleted = await posts.getPostField(replyPid, 'deleted');

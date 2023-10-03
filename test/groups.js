@@ -569,37 +569,26 @@ describe('Groups', () => {
             });
         });
 
-        it('should remove group from privilege groups', (done) => {
+        it('should remove group from privilege groups', async () => {
             const privileges = require('../src/privileges');
             const cid = 1;
             const groupName = '1';
             const uid = 1;
-            async.waterfall([
-                function (next) {
-                    Groups.create({ name: groupName }, next);
-                },
-                function (groupData, next) {
-                    privileges.categories.give(['groups:topics:create'], cid, groupName, next);
-                },
-                function (next) {
-                    Groups.isMember(groupName, 'cid:1:privileges:groups:topics:create', next);
-                },
-                function (isMember, next) {
-                    assert(isMember);
-                    Groups.destroy(groupName, next);
-                },
-                function (next) {
-                    Groups.isMember(groupName, 'cid:1:privileges:groups:topics:create', next);
-                },
-                function (isMember, next) {
-                    assert(!isMember);
-                    Groups.isMember(uid, 'registered-users', next);
-                },
-                function (isMember, next) {
-                    assert(isMember);
-                    next();
-                },
-            ], done);
+
+            await Groups.create({ name: groupName });
+
+            await privileges.categories.give(['groups:topics:create'], cid, groupName);
+
+            const isMemberAfterGive = await Groups.isMember(groupName, 'cid:1:privileges:groups:topics:create');
+            assert(isMemberAfterGive);
+
+            await Groups.destroy(groupName);
+
+            const isMemberAfterDestroy = await Groups.isMember(groupName, 'cid:1:privileges:groups:topics:create');
+            assert(!isMemberAfterDestroy);
+
+            const isMemberRegisteredUsers = await Groups.isMember(uid, 'registered-users');
+            assert(isMemberRegisteredUsers);
         });
     });
 
