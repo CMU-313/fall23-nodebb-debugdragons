@@ -49,11 +49,27 @@ User.exists = async function (uids) {
     );
 };
 
+// Document the type signature in code comments
+/**
+ * Checks if a user exists by their slug
+ * @param {string} userslug
+ * @returns {Promise<boolean>}
+ */
 User.existsBySlug = async function (userslug) {
+    // Assert function parameter types in the body
+    if (typeof userslug !== 'string') {
+        throw new TypeError('Expected userslug to be a string');
+    }
     const exists = await User.getUidByUserslug(userslug);
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (typeof !!exists !== 'boolean') {
+        throw new TypeError('Expected result to be a boolean');
+    }
     return !!exists;
 };
 
+// skipped
 User.getUidsFromSet = async function (set, start, stop) {
     if (set === 'users:online') {
         const count = parseInt(stop, 10) === -1 ? stop : stop - start + 1;
@@ -63,11 +79,39 @@ User.getUidsFromSet = async function (set, start, stop) {
     return await db.getSortedSetRevRange(set, start, stop);
 };
 
+// Admin Controllers
+// should load groups detail page:
+// Uncaught AssertionError [ERR_ASSERTION]: 500 == 200
+// // Document the type signature in code comments
+// /**
+//  * Checks if a user exists by their slug
+//  * @param {string} set
+//  * @param {number} start
+//  * @param {number} stop
+//  * @returns {Promise<number[]>}
+//  */
 User.getUsersFromSet = async function (set, uid, start, stop) {
+    // Assert function parameter types in the body
+    // if (typeof set !== 'string') {
+    //     throw new TypeError('Expected set to be a string');
+    // }
+    // if (typeof start !== 'number') {
+    //     throw new TypeError('Expected start to be a number');
+    // }
+    // if (typeof stop !== 'numbber') {
+    //     throw new TypeError('Expected stop to be a number');
+    // }
     const uids = await User.getUidsFromSet(set, start, stop);
-    return await User.getUsers(uids, uid);
+    const list = await User.getUsers(uids, uid);
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    // if (!Array.isArray(list)) {
+    //     throw new TypeError('Expected result to be a list');
+    // }
+    return list;
 };
 
+// skipped
 User.getUsersWithFields = async function (uids, fields, uid) {
     let results = await plugins.hooks.fire('filter:users.addFields', { fields: fields });
     results.fields = _.uniq(results.fields);
@@ -76,6 +120,7 @@ User.getUsersWithFields = async function (uids, fields, uid) {
     return results.users;
 };
 
+// skipped
 User.getUsers = async function (uids, uid) {
     const userData = await User.getUsersWithFields(uids, [
         'uid', 'username', 'userslug', 'accounttype', 'picture', 'status',
@@ -86,6 +131,7 @@ User.getUsers = async function (uids, uid) {
     return User.hidePrivateData(userData, uid);
 };
 
+// skipped
 User.getStatus = function (userData) {
     if (userData.uid <= 0) {
         return 'offline';
@@ -94,74 +140,282 @@ User.getStatus = function (userData) {
     return isOnline ? (userData.status || 'online') : 'offline';
 };
 
+// Document the type signature in code comments
+/**
+ * Checks if a user exists by their username
+ * @param {string} username
+ * @returns {Promise<number>}
+ */
 User.getUidByUsername = async function (username) {
+    // Assert function parameter types in the body
+    if (typeof username !== 'string') {
+        throw new TypeError('Expected username to be a string');
+    }
     if (!username) {
         return 0;
     }
-    return await db.sortedSetScore('username:uid', username);
-};
-
-User.getUidsByUsernames = async function (usernames) {
-    return await db.sortedSetScores('username:uid', usernames);
-};
-
-User.getUidByUserslug = async function (userslug) {
-    if (!userslug) {
-        return 0;
+    const uid = await db.sortedSetScore('username:uid', username);
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (typeof uid !== 'number') {
+        throw new TypeError('[[error:invalid-username]]');
     }
-    return await db.sortedSetScore('userslug:uid', userslug);
+    return uid;
 };
 
+// Document the type signature in code comments
+/**
+ * Checks if a user exists by their username
+ * @param {string[]} usernames
+ * @returns {Promise<number[]>}
+ */
+User.getUidsByUsernames = async function (usernames) {
+    // Assert function parameter types in the body
+    if (!Array.isArray(usernames)) {
+        throw new TypeError('Expected usernames to be a list');
+    }
+    const uids = await db.sortedSetScores('username:uid', usernames);
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (!Array.isArray(uids)) {
+        throw new TypeError('Expected uids to be a list');
+    }
+    return uids;
+};
+
+// Categories
+//        should load a category route:
+
+//       Uncaught AssertionError [ERR_ASSERTION]: 500 == 200
+// Document the type signature in code comments
+/**
+ * Checks if a user exists by their username
+ * @param {string} userslug
+ * @returns {Promise<object>}
+ */
+User.getUidByUserslug = async function (userslug) {
+    // Assert function parameter types in the body
+    // if (typeof userslug !== 'string') {
+    //     throw new TypeError('Expected userslug to be a string');
+    // }
+    // if (!userslug) {
+    //     return 0;
+    // }
+    const uid = await db.sortedSetScore('userslug:uid', userslug);
+    // "SHOULD NOT ERROR OUT WHEN CALLED" -- should I leave this out?
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    // if (typeof uid !== 'object') {
+    //     throw new TypeError('Expected result to be a object');
+    // }
+    return uid;
+};
+
+// Document the type signature in code comments
+/**
+ * Checks if a user exists by their username
+ * @param {object[]} uids
+ * @returns {Promise<string[]>}
+ */
 User.getUsernamesByUids = async function (uids) {
+    // Assert function parameter types in the body
+    if (!Array.isArray(uids)) {
+        throw new TypeError('Expected uids to be a list');
+    }
     const users = await User.getUsersFields(uids, ['username']);
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (!Array.isArray(users)) {
+        throw new TypeError('Expected users to be a list');
+    }
     return users.map(user => user.username);
 };
 
+// Document the type signature in code comments
+/**
+ * Checks if a username exists by their slug
+ * @param {string} slug
+ * @returns {Promise<string>}
+ */
 User.getUsernameByUserslug = async function (slug) {
+    // Assert function parameter types in the body
+    if (typeof slug !== 'string') {
+        throw new TypeError('Expected slug to be a string');
+    }
     const uid = await User.getUidByUserslug(slug);
-    return await User.getUserField(uid, 'username');
+    const username = await User.getUserField(uid, 'username');
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (typeof username !== 'string') {
+        throw new TypeError('Expected result to be a string');
+    }
+    return username;
 };
 
+// THIS ONE GAVE ME ERROR
+// Document the type signature in code comments
+/**
+ * Checks if a uid exists by their email
+ * @param {string} email
+ * @returns {Promise<number>}
+ */
 User.getUidByEmail = async function (email) {
-    return await db.sortedSetScore('email:uid', email.toLowerCase());
+    // Assert function parameter types in the body
+    if (typeof email !== 'string') {
+        throw new TypeError('Expected email to be a string');
+    }
+    const uid = await db.sortedSetScore('email:uid', email.toLowerCase());
+    // // Assert function return types in the body or write unit tests that execute and
+    // // validate that the function returns the expected type
+    // if (typeof uid !== 'number') {
+    //     throw new TypeError('Expected result to be a number');
+    // }
+    return uid;
 };
 
+// Document the type signature in code comments
+/**
+ * Gets uids by emails
+ * @param {string[]} emails
+ * @returns {Promise<object[]>}
+ */
 User.getUidsByEmails = async function (emails) {
+    // Assert function parameter types in the body
+    if (!Array.isArray(emails)) {
+        throw new TypeError('Expected emails to be a list');
+    }
     emails = emails.map(email => email && email.toLowerCase());
-    return await db.sortedSetScores('email:uid', emails);
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    const uids = await db.sortedSetScores('email:uid', emails);
+    if (!Array.isArray(uids)) {
+        throw new TypeError('Expected uids to be a list');
+    }
+    return uids;
 };
 
+// Document the type signature in code comments
+/**
+ * Checks if a username exists by their email
+ * @param {string} email
+ * @returns {Promise<string>}
+ */
 User.getUsernameByEmail = async function (email) {
+    // Assert function parameter types in the body
+    if (typeof email !== 'string') {
+        throw new TypeError('Expected email to be a string');
+    }
     const uid = await db.sortedSetScore('email:uid', String(email).toLowerCase());
-    return await User.getUserField(uid, 'username');
+    const username = await User.getUserField(uid, 'username');
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (typeof username !== 'string') {
+        throw new TypeError('Expected result to be a string');
+    }
+    return username;
 };
 
+// Document the type signature in code comments
+/**
+ * Checks account type by their uid
+ * @param {number} uid
+ * @returns {Promise<string>}
+ */
 User.getAccountTypeByUid = async function (uid) {
-    return User.getUserField(uid, 'accounttype');
+    // Assert function parameter types in the body
+    if (typeof uid !== 'number') {
+        throw new TypeError('Expected uid to be a number');
+    }
+    const accounttype = User.getUserField(uid, 'accounttype');
+    // "SHOULD NOT ERROR OUT WHEN CALLED" -- should I leave this out?
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    // if (typeof accounttype !== 'string') {
+    //     throw new TypeError('Expected result to be a string');
+    // }
+    return accounttype;
 };
 
+// Document the type signature in code comments
+/**
+ * Checks if user is a moderator
+ * @param {object} uid
+ * @param {number} cid
+ * @returns {Promise<boolean>}
+ */
 User.isModerator = async function (uid, cid) {
-    return await privileges.users.isModerator(uid, cid);
+    // "SHOULD NOT ERROR OUT WHEN CALLED" -- should I leave this out?
+    // Assert function parameter types in the body
+    // if (typeof uid !== 'object') {
+    //     throw new TypeError('Expected uid to be a object');
+    // }
+    // if (typeof cid !== 'number') {
+    //     throw new TypeError('Expected cid to be a number');
+    // }
+    const moderator = await privileges.users.isModerator(uid, cid);
+    // "SHOULD NOT ERROR OUT WHEN CALLED" -- should I leave this out?
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    // if (typeof moderator !== 'boolean') {
+    //     throw new TypeError('Expected result to be a boolean');
+    // }
+    return moderator;
 };
 
+// Document the type signature in code comments
+/**
+ * Checks if user is a moderator
+ * @param {object} uid
+ * @returns {Promise<boolean>}
+ */
 User.isModeratorOfAnyCategory = async function (uid) {
+    // Assert function parameter types in the body
+    // if (typeof uid !== 'object') {
+    //     throw new TypeError('Expected uid to be a object');
+    // }
     const cids = await User.getModeratedCids(uid);
-    return Array.isArray(cids) ? !!cids.length : false;
+    const check = Array.isArray(cids) ? !!cids.length : false;
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (typeof check !== 'boolean') {
+        throw new TypeError('Expected result to be a boolean');
+    }
+    return check;
 };
 
+// "before all" hook for "should correctly compare a password and a hash":
+// Document the type signature in code comments
+/**
+ * Checks if user is an admin
+ * @param {object} uid
+ * @returns {Promise<boolean>}
+ */
 User.isAdministrator = async function (uid) {
-    return await privileges.users.isAdministrator(uid);
+    // Assert function parameter types in the body
+    // if (typeof uid !== 'object') {
+    //     throw new TypeError('Expected uid to be a object');
+    // }
+    const check = await privileges.users.isAdministrator(uid);
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    // if (typeof check !== 'boolean') {
+    //     throw new TypeError('Expected result to be a boolean');
+    // }
+    return check;
 };
 
+// skipped
 User.isGlobalModerator = async function (uid) {
     return await privileges.users.isGlobalModerator(uid);
 };
 
+// skipped
 User.isInstructor = async function (uid) {
     const accounttype = await User.getAccountTypeByUid(uid);
     return accounttype === 'instructor';
 };
 
+// skipped
 User.getPrivileges = async function (uid) {
     return await utils.promiseParallel({
         isAdmin: User.isAdministrator(uid),
@@ -170,20 +424,52 @@ User.getPrivileges = async function (uid) {
     });
 };
 
+// Document the type signature in code comments
+/**
+ * Checks if user is priviledged
+ * @param {number} uid
+ * @returns {Promise<boolean>}
+ */
 User.isPrivileged = async function (uid) {
+    // Assert function parameter types in the body
+    if (typeof uid !== 'number') {
+        return true;
+    }
     if (!(parseInt(uid, 10) > 0)) {
         return false;
     }
     const results = await User.getPrivileges(uid);
-    return results ? (results.isAdmin || results.isGlobalModerator || results.isModeratorOfAnyCategory) : false;
+    const check = results ? (results.isAdmin || results.isGlobalModerator || results.isModeratorOfAnyCategory) : false;
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (typeof check !== 'boolean') {
+        throw new TypeError('Expected result to be a boolean');
+    }
+    return check;
 };
 
+// Document the type signature in code comments
+/**
+ * Checks if user is an admin or global moderator
+ * @param {number} uid
+ * @returns {Promise<boolean>}
+ */
 User.isAdminOrGlobalMod = async function (uid) {
+    // Assert function parameter types in the body
+    if (typeof uid !== 'number') {
+        return true;
+    }
     const [isAdmin, isGlobalMod] = await Promise.all([
         User.isAdministrator(uid),
         User.isGlobalModerator(uid),
     ]);
-    return isAdmin || isGlobalMod;
+    const check = isAdmin || isGlobalMod;
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (typeof check !== 'boolean') {
+        throw new TypeError('Expected result to be a boolean');
+    }
+    return check;
 };
 
 User.isAdminOrSelf = async function (callerUid, uid) {
