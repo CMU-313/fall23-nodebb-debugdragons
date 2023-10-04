@@ -472,33 +472,114 @@ User.isAdminOrGlobalMod = async function (uid) {
     return check;
 };
 
+// Document the type signature in code comments
+/**
+ * Checks if user is an admin or global moderator
+ * @param {number} callerUid
+ * @param {number} uid
+ * @returns {Promise<void>}
+ */
 User.isAdminOrSelf = async function (callerUid, uid) {
-    await isSelfOrMethod(callerUid, uid, User.isAdministrator);
+    // Assert function parameter types in the body
+    if (typeof callerUid !== 'number') {
+        throw new TypeError('Expected result to be a number');
+    }
+    if (typeof uid !== 'number') {
+        throw new TypeError('Expected result to be a number');
+    }
+    const result = await isSelfOrMethod(callerUid, uid, User.isAdministrator);
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (result !== undefined) {
+        throw new Error('Expected void but received a value');
+    }
+    return;
 };
 
+// Document the type signature in code comments
+/**
+ * Checks if user is an admin or global moderator or self
+ * @param {number} callerUid
+ * @param {number} uid
+ * @returns {Promise<void>}
+ */
 User.isAdminOrGlobalModOrSelf = async function (callerUid, uid) {
-    await isSelfOrMethod(callerUid, uid, User.isAdminOrGlobalMod);
+    // Assert function parameter types in the body
+    if (typeof callerUid !== 'number') {
+        throw new TypeError('Expected result to be a number');
+    }
+    if (typeof uid !== 'number') {
+        throw new TypeError('Expected result to be a number');
+    }
+    const result = await isSelfOrMethod(callerUid, uid, User.isAdminOrGlobalMod);
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (result !== undefined) {
+        throw new Error('Expected void but received a value');
+    }
+    return;
 };
 
+// Document the type signature in code comments
+/**
+ * Checks if user is priviledged or self
+ * @param {number} callerUid
+ * @param {number} uid
+ * @returns {Promise<void>}
+ */
 User.isPrivilegedOrSelf = async function (callerUid, uid) {
-    await isSelfOrMethod(callerUid, uid, User.isPrivileged);
+    // Assert function parameter types in the body
+    if (typeof callerUid !== 'number') {
+        throw new TypeError('Expected result to be a number');
+    }
+    if (typeof uid !== 'number') {
+        throw new TypeError('Expected result to be a number');
+    }
+    const result = await isSelfOrMethod(callerUid, uid, User.isPrivileged);
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (result !== undefined) {
+        throw new Error('Expected void but received a value');
+    }
+    return;
 };
 
+/**
+ * Check if the current user has certain privileges or permissions.
+ * @param {number} callerUid 
+ * @param {number} uid 
+ * @param {function(number): Promise<boolean>} method 
+ * @returns {Promise<void>} 
+ */
 async function isSelfOrMethod(callerUid, uid, method) {
+    // Assert function parameter types in the body
+    if (typeof callerUid !== 'number') {
+        throw new TypeError('Expected result to be a number');
+    }
+    if (typeof uid !== 'number') {
+        throw new TypeError('Expected result to be a number');
+    }
+    if (typeof method !== 'function') {
+        throw new TypeError('Expected method to be a function');
+    }
     if (parseInt(callerUid, 10) === parseInt(uid, 10)) {
         return;
     }
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
     const isPass = await method(callerUid);
     if (!isPass) {
         throw new Error('[[error:no-privileges]]');
     }
 }
 
+// skipped
 User.getAdminsandGlobalMods = async function () {
     const results = await groups.getMembersOfGroups(['administrators', 'Global Moderators']);
     return await User.getUsersData(_.union(...results));
 };
 
+// skipped
 User.getAdminsandGlobalModsandModerators = async function () {
     const results = await Promise.all([
         groups.getMembers('administrators', 0, -1),
@@ -508,23 +589,59 @@ User.getAdminsandGlobalModsandModerators = async function () {
     return await User.getUsersData(_.union(...results));
 };
 
+/**
+ * Gets the first admin uid
+ * @returns {Promise<number>} 
+ */
 User.getFirstAdminUid = async function () {
-    return (await db.getSortedSetRange('group:administrators:members', 0, 0))[0];
+    const result = (await db.getSortedSetRange('group:administrators:members', 0, 0))[0];
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (result !== 'number') {
+        throw new Error('Expected result to be a number');
+    }
+    return result;
 };
 
+/**
+ * Gets the moderator uids
+ * @returns {Promise<number[]>} 
+ */
 User.getModeratorUids = async function () {
     const cids = await categories.getAllCidsFromSet('categories:cid');
     const uids = await categories.getModeratorUids(cids);
-    return _.union(...uids);
+    const result = _.union(...uids);
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (!Array.isArray(result)) {
+        throw new Error('Expected result to be a list');
+    }
+    return result;
 };
 
+/**
+ * Gets the moderator cids
+ * @param {number} uid
+ * @returns {Promise<number[]>} 
+ */
 User.getModeratedCids = async function (uid) {
+    // AssertionError [ERR_ASSERTION]: Expected values to be strictly equal
+    // Assert function parameter types in the body
+    // if (typeof uid !== 'number') {
+    //     throw new TypeError('Expected result to be a number');
+    // }
     if (parseInt(uid, 10) <= 0) {
         return [];
     }
     const cids = await categories.getAllCidsFromSet('categories:cid');
     const isMods = await User.isModerator(uid, cids);
-    return cids.filter((cid, index) => cid && isMods[index]);
+    const result = cids.filter((cid, index) => cid && isMods[index]);
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (!Array.isArray(result)) {
+        throw new Error('Expected result to be a list');
+    }
+    return result;
 };
 
 User.addInterstitials = function (callback) {
