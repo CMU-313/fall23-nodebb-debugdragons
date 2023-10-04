@@ -79,35 +79,33 @@ User.getUidsFromSet = async function (set, start, stop) {
     return await db.getSortedSetRevRange(set, start, stop);
 };
 
-// Admin Controllers
-// should load groups detail page:
-// Uncaught AssertionError [ERR_ASSERTION]: 500 == 200
-// // Document the type signature in code comments
-// /**
-//  * Checks if a user exists by their slug
-//  * @param {string} set
-//  * @param {number} start
-//  * @param {number} stop
-//  * @returns {Promise<number[]>}
-//  */
+// Document the type signature in code comments
+/**
+ * Gets users from a set
+ * @param {string} set
+ * @param {number} uid
+ * @param {number} start
+ * @param {number} stop
+ * @returns {Promise<number[]>}
+ */
 User.getUsersFromSet = async function (set, uid, start, stop) {
     // Assert function parameter types in the body
-    // if (typeof set !== 'string') {
-    //     throw new TypeError('Expected set to be a string');
-    // }
-    // if (typeof start !== 'number') {
-    //     throw new TypeError('Expected start to be a number');
-    // }
-    // if (typeof stop !== 'numbber') {
-    //     throw new TypeError('Expected stop to be a number');
-    // }
+    if (typeof set !== 'string') {
+        throw new TypeError('Expected set to be a string');
+    }
+    if (typeof start !== 'number') {
+        throw new TypeError('Expected start to be a number');
+    }
+    if (typeof stop !== 'number') {
+        throw new TypeError('Expected stop to be a number');
+    }
     const uids = await User.getUidsFromSet(set, start, stop);
     const list = await User.getUsers(uids, uid);
     // Assert function return types in the body or write unit tests that execute and
     // validate that the function returns the expected type
-    // if (!Array.isArray(list)) {
-    //     throw new TypeError('Expected result to be a list');
-    // }
+    if (!Array.isArray(list)) {
+        throw new TypeError('Expected result to be a list');
+    }
     return list;
 };
 
@@ -183,32 +181,33 @@ User.getUidsByUsernames = async function (usernames) {
     return uids;
 };
 
-// Categories
-//        should load a category route:
-
-//       Uncaught AssertionError [ERR_ASSERTION]: 500 == 200
 // Document the type signature in code comments
 /**
  * Checks if a user exists by their username
  * @param {string} userslug
- * @returns {Promise<object>}
+ * @returns {Promise<number>}
  */
 User.getUidByUserslug = async function (userslug) {
     // Assert function parameter types in the body
-    // if (typeof userslug !== 'string') {
-    //     throw new TypeError('Expected userslug to be a string');
-    // }
-    // if (!userslug) {
-    //     return 0;
-    // }
-    const uid = await db.sortedSetScore('userslug:uid', userslug);
-    // "SHOULD NOT ERROR OUT WHEN CALLED" -- should I leave this out?
+    if (!userslug) {
+        return 0;
+    }
+    const result = await db.sortedSetScore('userslug:uid', userslug);
     // Assert function return types in the body or write unit tests that execute and
     // validate that the function returns the expected type
-    // if (typeof uid !== 'object') {
-    //     throw new TypeError('Expected result to be a object');
-    // }
-    return uid;
+    if (typeof result === 'object' || typeof result === 'number') {
+        // Handle both object and number cases
+        if (typeof result === 'number') {
+            return result;
+        } else if (typeof result === 'object' && result !== null) {
+            // Extract the number from the object, assuming there is a key called 'uid'
+            const uid = result.uid;
+            if (typeof uid === 'number') {
+                return uid;
+            }
+        }
+    }
+    return 0;
 };
 
 // Document the type signature in code comments
@@ -252,7 +251,6 @@ User.getUsernameByUserslug = async function (slug) {
     return username;
 };
 
-// THIS ONE GAVE ME ERROR
 // Document the type signature in code comments
 /**
  * Checks if a uid exists by their email
@@ -264,13 +262,22 @@ User.getUidByEmail = async function (email) {
     if (typeof email !== 'string') {
         throw new TypeError('Expected email to be a string');
     }
-    const uid = await db.sortedSetScore('email:uid', email.toLowerCase());
+    const result = await db.sortedSetScore('email:uid', email.toLowerCase());
     // // Assert function return types in the body or write unit tests that execute and
     // // validate that the function returns the expected type
-    // if (typeof uid !== 'number') {
-    //     throw new TypeError('Expected result to be a number');
-    // }
-    return uid;
+    if (typeof result === 'object' || typeof result === 'number') {
+        // Handle both object and number cases
+        if (typeof result === 'number') {
+            return result;
+        } else if (typeof result === 'object' && result !== null) {
+            // Extract the number from the object, assuming there is a key called 'uid'
+            const uid = result.uid;
+            if (typeof uid === 'number') {
+                return uid;
+            }
+        }
+    }
+    return 0;
 };
 
 // Document the type signature in code comments
