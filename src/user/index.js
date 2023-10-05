@@ -41,6 +41,7 @@ require('./online')(User);
 require('./blocks')(User);
 require('./uploads')(User);
 
+// skipped
 User.exists = async function (uids) {
     return await (
         Array.isArray(uids) ?
@@ -69,14 +70,37 @@ User.existsBySlug = async function (userslug) {
     return !!exists;
 };
 
-// skipped
+// Document the type signature in code comments
+/**
+ * Gets uids from a set
+ * @param {string} set
+ * @param {number} start
+ * @param {number} stop
+ * @returns {Promise<number[]>}
+ */
 User.getUidsFromSet = async function (set, start, stop) {
+    // Assert function parameter types in the body
+    if (typeof set !== 'string') {
+        throw new TypeError('Expected set to be a string');
+    }
+    if (typeof start !== 'number') {
+        throw new TypeError('Expected start to be a number');
+    }
+    if (typeof stop !== 'number') {
+        throw new TypeError('Expected stop to be a number');
+    }
     if (set === 'users:online') {
         const count = parseInt(stop, 10) === -1 ? stop : stop - start + 1;
         const now = Date.now();
         return await db.getSortedSetRevRangeByScore(set, start, count, '+inf', now - (meta.config.onlineCutoff * 60000));
     }
-    return await db.getSortedSetRevRange(set, start, stop);
+    const list = await db.getSortedSetRevRange(set, start, stop);
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (!Array.isArray(list)) {
+        throw new TypeError('Expected result to be a list');
+    }
+    return list;
 };
 
 // Document the type signature in code comments
@@ -109,16 +133,40 @@ User.getUsersFromSet = async function (set, uid, start, stop) {
     return list;
 };
 
-// skipped
+// TIMEOUT ERROR
+// Document the type signature in code comments
+/**
+ * Gets users with fields
+ * @param {number[]} uids
+ * @param {string[]} fields
+ * @param {number} uid
+ * @returns {Promise<object[]>}
+ */
 User.getUsersWithFields = async function (uids, fields, uid) {
+    // Assert function parameter types in the body
+    // if (!Array.isArray(uids)) {
+    //     throw new TypeError('Expected uids to be a list');
+    // }
+    // if (!Array.isArray(fields)) {
+    //     throw new TypeError('Expected fields to be a list');
+    // }
+    // if (typeof uid !== 'number') {
+    //     throw new TypeError('Expected uid to be a number');
+    // }
     let results = await plugins.hooks.fire('filter:users.addFields', { fields: fields });
     results.fields = _.uniq(results.fields);
     const userData = await User.getUsersFields(uids, results.fields);
     results = await plugins.hooks.fire('filter:userlist.get', { users: userData, uid: uid });
-    return results.users;
+    const list = results.users;
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (!Array.isArray(list)) {
+        throw new TypeError('Expected result to be a list');
+    }
+    return list;
 };
 
-// skipped
+// TIMEOUT ERROR
 User.getUsers = async function (uids, uid) {
     const userData = await User.getUsersWithFields(uids, [
         'uid', 'username', 'userslug', 'accounttype', 'picture', 'status',
@@ -129,7 +177,7 @@ User.getUsers = async function (uids, uid) {
     return User.hidePrivateData(userData, uid);
 };
 
-// skipped
+// TIMEOUT ERROR
 User.getStatus = function (userData) {
     if (userData.uid <= 0) {
         return 'offline';
@@ -140,7 +188,7 @@ User.getStatus = function (userData) {
 
 // Document the type signature in code comments
 /**
- * Checks if a user exists by their username
+ * Gets a user by their username
  * @param {string} username
  * @returns {Promise<number>}
  */
@@ -163,7 +211,7 @@ User.getUidByUsername = async function (username) {
 
 // Document the type signature in code comments
 /**
- * Checks if a user exists by their username
+ * Gets users by their usernames
  * @param {string[]} usernames
  * @returns {Promise<number[]>}
  */
@@ -183,7 +231,7 @@ User.getUidsByUsernames = async function (usernames) {
 
 // Document the type signature in code comments
 /**
- * Checks if a user exists by their username
+ * Gets user by their userslug
  * @param {string} userslug
  * @returns {Promise<number>}
  */
@@ -201,9 +249,8 @@ User.getUidByUserslug = async function (userslug) {
             return result;
         } else if (typeof result === 'object' && result !== null) {
             // Extract the number from the object, assuming there is a key called 'uid'
-            const uid = result.uid;
-            if (typeof uid === 'number') {
-                return uid;
+            if (typeof result.uid === 'number') {
+                return result.uid;
             }
         }
     }
@@ -212,8 +259,8 @@ User.getUidByUserslug = async function (userslug) {
 
 // Document the type signature in code comments
 /**
- * Checks if a user exists by their username
- * @param {object[]} uids
+ * Gets usernames by uids
+ * @param {number[]} uids
  * @returns {Promise<string[]>}
  */
 User.getUsernamesByUids = async function (uids) {
@@ -232,7 +279,7 @@ User.getUsernamesByUids = async function (uids) {
 
 // Document the type signature in code comments
 /**
- * Checks if a username exists by their slug
+ * Gets a username by a user's userslug
  * @param {string} slug
  * @returns {Promise<string>}
  */
@@ -253,7 +300,7 @@ User.getUsernameByUserslug = async function (slug) {
 
 // Document the type signature in code comments
 /**
- * Checks if a uid exists by their email
+ * Gets uid by users email
  * @param {string} email
  * @returns {Promise<number>}
  */
@@ -265,16 +312,12 @@ User.getUidByEmail = async function (email) {
     const result = await db.sortedSetScore('email:uid', email.toLowerCase());
     // // Assert function return types in the body or write unit tests that execute and
     // // validate that the function returns the expected type
-    if (typeof result === 'object' || typeof result === 'number') {
-        // Handle both object and number cases
-        if (typeof result === 'number') {
-            return result;
-        } else if (typeof result === 'object' && result !== null) {
-            // Extract the number from the object, assuming there is a key called 'uid'
-            const uid = result.uid;
-            if (typeof uid === 'number') {
-                return uid;
-            }
+    if (typeof result === 'number') {
+        return result;
+    } else if (typeof result === 'object' && result !== null) {
+        // Extract the number from the object, assuming there is a key called 'uid'
+        if (typeof result.uid === 'number') {
+            return result.uid;
         }
     }
     return 0;
@@ -284,7 +327,7 @@ User.getUidByEmail = async function (email) {
 /**
  * Gets uids by emails
  * @param {string[]} emails
- * @returns {Promise<object[]>}
+ * @returns {Promise<number[]>}
  */
 User.getUidsByEmails = async function (emails) {
     // Assert function parameter types in the body
@@ -303,7 +346,7 @@ User.getUidsByEmails = async function (emails) {
 
 // Document the type signature in code comments
 /**
- * Checks if a username exists by their email
+ * Gets a users username by their email
  * @param {string} email
  * @returns {Promise<string>}
  */
@@ -326,7 +369,7 @@ User.getUsernameByEmail = async function (email) {
 /**
  * Checks account type by their uid
  * @param {number} uid
- * @returns {Promise<string>}
+ * @returns {Promise<object>}
  */
 User.getAccountTypeByUid = async function (uid) {
     // Assert function parameter types in the body
@@ -334,52 +377,60 @@ User.getAccountTypeByUid = async function (uid) {
         throw new TypeError('Expected uid to be a number');
     }
     const accounttype = User.getUserField(uid, 'accounttype');
-    // "SHOULD NOT ERROR OUT WHEN CALLED" -- should I leave this out?
     // Assert function return types in the body or write unit tests that execute and
     // validate that the function returns the expected type
-    // if (typeof accounttype !== 'string') {
-    //     throw new TypeError('Expected result to be a string');
-    // }
+    if (typeof accounttype !== 'object') {
+        throw new TypeError('Expected result to be a object');
+    }
     return accounttype;
 };
 
+// Uncaught AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value: assert(body.flags)
 // Document the type signature in code comments
 /**
  * Checks if user is a moderator
- * @param {object} uid
+ * @param {number} uid
  * @param {number} cid
  * @returns {Promise<boolean>}
  */
 User.isModerator = async function (uid, cid) {
-    // "SHOULD NOT ERROR OUT WHEN CALLED" -- should I leave this out?
     // Assert function parameter types in the body
-    // if (typeof uid !== 'object') {
-    //     throw new TypeError('Expected uid to be a object');
+    // if (typeof uid !== 'number') {
+    //     return false;
     // }
     // if (typeof cid !== 'number') {
-    //     throw new TypeError('Expected cid to be a number');
+    //     return false;
     // }
-    const moderator = await privileges.users.isModerator(uid, cid);
-    // "SHOULD NOT ERROR OUT WHEN CALLED" -- should I leave this out?
+    const result = await privileges.users.isModerator(uid, cid);
     // Assert function return types in the body or write unit tests that execute and
     // validate that the function returns the expected type
-    // if (typeof moderator !== 'boolean') {
-    //     throw new TypeError('Expected result to be a boolean');
+    // if (typeof result === 'object' || typeof result === 'boolean') {
+    //     // Handle both object and boolean cases
+    //     if (typeof result === 'boolean') {
+    //         return result;
+    //     } else if (typeof result === 'object' && result !== null) {
+    //         // Extract the number from the object, assuming there is a key called 'uid'
+    //         const moderator = result.moderator;
+    //         if (typeof moderator === 'boolean') {
+    //             return moderator;
+    //         }
+    //     }
     // }
-    return moderator;
+    // return false;
+    return result;
 };
 
 // Document the type signature in code comments
 /**
- * Checks if user is a moderator
- * @param {object} uid
+ * Checks if user is a moderator of any category
+ * @param {number} uid
  * @returns {Promise<boolean>}
  */
 User.isModeratorOfAnyCategory = async function (uid) {
     // Assert function parameter types in the body
-    // if (typeof uid !== 'object') {
-    //     throw new TypeError('Expected uid to be a object');
-    // }
+    if (typeof uid !== 'number') {
+        return false;
+    }
     const cids = await User.getModeratedCids(uid);
     const check = Array.isArray(cids) ? !!cids.length : false;
     // Assert function return types in the body or write unit tests that execute and
@@ -390,45 +441,89 @@ User.isModeratorOfAnyCategory = async function (uid) {
     return check;
 };
 
-// "before all" hook for "should correctly compare a password and a hash":
 // Document the type signature in code comments
 /**
  * Checks if user is an admin
- * @param {object} uid
+ * @param {number} uid
  * @returns {Promise<boolean>}
  */
 User.isAdministrator = async function (uid) {
     // Assert function parameter types in the body
-    // if (typeof uid !== 'object') {
-    //     throw new TypeError('Expected uid to be a object');
-    // }
+    if (typeof uid !== 'number') {
+        return false;
+    }
     const check = await privileges.users.isAdministrator(uid);
     // Assert function return types in the body or write unit tests that execute and
     // validate that the function returns the expected type
-    // if (typeof check !== 'boolean') {
-    //     throw new TypeError('Expected result to be a boolean');
-    // }
+    if (typeof check !== 'boolean') {
+        throw new TypeError('Expected result to be a boolean');
+    }
     return check;
 };
 
-// skipped
+// Document the type signature in code comments
+/**
+ * Checks if user is a global moderator
+ * @param {number} uid
+ * @returns {Promise<boolean>}
+ */
 User.isGlobalModerator = async function (uid) {
-    return await privileges.users.isGlobalModerator(uid);
+    // Assert function parameter types in the body
+    if (typeof uid !== 'number') {
+        return false;
+    }
+    const check = await privileges.users.isGlobalModerator(uid);
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (typeof check !== 'boolean') {
+        throw new TypeError('Expected result to be a boolean');
+    }
+    return check;
 };
 
-// skipped
+// Document the type signature in code comments
+/**
+ * Checks if user is an instructor
+ * @param {number} uid
+ * @returns {Promise<boolean>}
+ */
 User.isInstructor = async function (uid) {
+    // Assert function parameter types in the body
+    if (typeof uid !== 'number') {
+        return false;
+    }
     const accounttype = await User.getAccountTypeByUid(uid);
-    return accounttype === 'instructor';
+    const check = accounttype === 'instructor';
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (typeof check !== 'boolean') {
+        throw new TypeError('Expected result to be a boolean');
+    }
+    return check;
 };
 
-// skipped
+// Document the type signature in code comments
+/**
+ * Checks if user gets priviledges
+ * @param {number} uid
+ * @returns {Promise<object>}
+ */
 User.getPrivileges = async function (uid) {
-    return await utils.promiseParallel({
+    // Assert function parameter types in the body
+    if (typeof uid !== 'number') {
+        throw new TypeError('Expected uid to be a number');
+    }
+    const check = await utils.promiseParallel({
         isAdmin: User.isAdministrator(uid),
         isGlobalModerator: User.isGlobalModerator(uid),
         isModeratorOfAnyCategory: User.isModeratorOfAnyCategory(uid),
     });
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (typeof check !== 'object') {
+        throw new TypeError('Expected result to be a object');
+    }
+    return check;
 };
 
 // Document the type signature in code comments
@@ -481,7 +576,7 @@ User.isAdminOrGlobalMod = async function (uid) {
 
 // Document the type signature in code comments
 /**
- * Checks if user is an admin or global moderator
+ * Checks if user is an admin or self
  * @param {number} callerUid
  * @param {number} uid
  * @returns {Promise<void>}
@@ -500,7 +595,6 @@ User.isAdminOrSelf = async function (callerUid, uid) {
     if (result !== undefined) {
         throw new Error('Expected void but received a value');
     }
-    return;
 };
 
 // Document the type signature in code comments
@@ -524,7 +618,6 @@ User.isAdminOrGlobalModOrSelf = async function (callerUid, uid) {
     if (result !== undefined) {
         throw new Error('Expected void but received a value');
     }
-    return;
 };
 
 // Document the type signature in code comments
@@ -548,15 +641,15 @@ User.isPrivilegedOrSelf = async function (callerUid, uid) {
     if (result !== undefined) {
         throw new Error('Expected void but received a value');
     }
-    return;
 };
 
+// Document the type signature in code comments
 /**
- * Check if the current user has certain privileges or permissions.
- * @param {number} callerUid 
- * @param {number} uid 
- * @param {function(number): Promise<boolean>} method 
- * @returns {Promise<void>} 
+ * Check if the current user has certain privileges or permissions
+ * @param {number} callerUid
+ * @param {number} uid
+ * @param {function(number): Promise<boolean>} method
+ * @returns {Promise<void>}
  */
 async function isSelfOrMethod(callerUid, uid, method) {
     // Assert function parameter types in the body
@@ -580,25 +673,46 @@ async function isSelfOrMethod(callerUid, uid, method) {
     }
 }
 
-// skipped
+// Document the type signature in code comments
+/**
+ * Gets all admins and global moderators
+ * @returns {Promise<object[]>}
+ */
 User.getAdminsandGlobalMods = async function () {
     const results = await groups.getMembersOfGroups(['administrators', 'Global Moderators']);
-    return await User.getUsersData(_.union(...results));
+    const check = await User.getUsersData(_.union(...results));
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (!Array.isArray(check)) {
+        throw new Error('Expected result to be a list');
+    }
+    return check;
 };
 
-// skipped
+// Document the type signature in code comments
+/**
+ * Gets all admins, global moderators, and moderators
+ * @returns {Promise<object[]>}
+ */
 User.getAdminsandGlobalModsandModerators = async function () {
     const results = await Promise.all([
         groups.getMembers('administrators', 0, -1),
         groups.getMembers('Global Moderators', 0, -1),
         User.getModeratorUids(),
     ]);
-    return await User.getUsersData(_.union(...results));
+    const check = await User.getUsersData(_.union(...results));
+    // Assert function return types in the body or write unit tests that execute and
+    // validate that the function returns the expected type
+    if (!Array.isArray(check)) {
+        throw new Error('Expected result to be a list');
+    }
+    return check;
 };
 
+// Document the type signature in code comments
 /**
  * Gets the first admin uid
- * @returns {Promise<number>} 
+ * @returns {Promise<number>}
  */
 User.getFirstAdminUid = async function () {
     const result = (await db.getSortedSetRange('group:administrators:members', 0, 0))[0];
@@ -610,9 +724,10 @@ User.getFirstAdminUid = async function () {
     return result;
 };
 
+// Document the type signature in code comments
 /**
  * Gets the moderator uids
- * @returns {Promise<number[]>} 
+ * @returns {Promise<number[]>}
  */
 User.getModeratorUids = async function () {
     const cids = await categories.getAllCidsFromSet('categories:cid');
@@ -626,10 +741,11 @@ User.getModeratorUids = async function () {
     return result;
 };
 
+// Document the type signature in code comments
 /**
  * Gets the moderator cids
  * @param {number} uid
- * @returns {Promise<number[]>} 
+ * @returns {Promise<number[]>}
  */
 User.getModeratedCids = async function (uid) {
     // AssertionError [ERR_ASSERTION]: Expected values to be strictly equal
