@@ -267,8 +267,8 @@ User.getUidByUsername = async function (username) {
     }
     const uid = await db.sortedSetScore('username:uid', username);
 
-    if (uid !== '[[error:invalid-username]]' && typeof uid !== 'number') {
-        throw new TypeError(`[[error:invalid-username]]`);
+    if (typeof uid !== 'number') {
+        throw new Error(`[[error:invalid-username]]`);
     }
     return uid;
 };
@@ -418,7 +418,7 @@ User.getUsernameByEmail = async function (email) {
  */
 User.getAccountTypeByUid = async function (uid) {
     if (typeof uid !== 'number') {
-        throw new TypeError(`[[error:invalid-username]]`);
+        throw new Error(`[[error:invalid-username]]`);
     }
 
     const accounttype = User.getUserField(uid, 'accounttype');
@@ -437,8 +437,8 @@ User.getAccountTypeByUid = async function (uid) {
  * @returns {Promise<boolean|Array<boolean>>}
  */
 User.isModerator = async function (uid, cid) {
-    if (!typeof uid === 'object') {
-        throw new TypeError(`Expected uid an object`);
+    if (typeof uid !== 'object' && typeof uid !== 'number') {
+        return false;
     }
 
     if (typeof cid !== 'string' && typeof cid !== 'number' && !Array.isArray(cid) && typeof cid !== 'object') {
@@ -542,7 +542,7 @@ User.isInstructor = async function (uid) {
  */
 User.getPrivileges = async function (uid) {
     if (typeof uid !== 'number') {
-        throw new TypeError(`[[error:invalid-username]]`);
+        throw new Error('[[error:invalid-username]]');
     }
 
     const check = await utils.promiseParallel({
@@ -615,7 +615,7 @@ User.isAdminOrSelf = async function (callerUid, uid) {
         throw new TypeError(`Expected callerUid to be a number`);
     }
     if (typeof uid !== 'number') {
-        throw new TypeError(`[[error:invalid-username]]`);
+        throw new Error(`[[error:invalid-username]]`);
     }
 
     const result = await isSelfOrMethod(callerUid, uid, User.isAdministrator);
@@ -636,7 +636,7 @@ User.isAdminOrGlobalModOrSelf = async function (callerUid, uid) {
         throw new TypeError(`Expected callerUid to be a number`);
     }
     if (typeof uid !== 'number') {
-        throw new TypeError(`[[error:invalid-username]]`);
+        throw new Error(`[[error:invalid-username]]`);
     }
 
     const result = await isSelfOrMethod(callerUid, uid, User.isAdminOrGlobalMod);
@@ -657,7 +657,7 @@ User.isPrivilegedOrSelf = async function (callerUid, uid) {
         throw new TypeError(`Expected callerUid to be a number`);
     }
     if (typeof uid !== 'number') {
-        throw new TypeError(`[[error:invalid-username]]`);
+        throw new Error(`[[error:invalid-username]]`);
     }
 
     const result = await isSelfOrMethod(callerUid, uid, User.isPrivileged);
@@ -679,7 +679,7 @@ async function isSelfOrMethod(callerUid, uid, method) {
         throw new TypeError(`Expected callerUid to be a number`);
     }
     if (typeof uid !== 'number') {
-        throw new Error(`[[error:invalid-username]]}`);
+        throw new Error(`[[error:invalid-username]]`);
     }
     if (typeof method !== 'function') {
         throw new TypeError(`Expected method to be a function`);
