@@ -739,25 +739,20 @@ describe('Categories', () => {
     describe('privileges', () => {
         const privileges = require('../src/privileges');
 
-        it('should return empty array if uids is empty array', (done) => {
-            privileges.categories.filterUids('find', categoryObj.cid, [], (err, uids) => {
-                assert.ifError(err);
+        it('should return empty array if uids is empty array', async () => {
+            privileges.categories.filterUids('find', categoryObj.cid, [], (uids) => {
                 assert.equal(uids.length, 0);
-                done();
             });
         });
 
-        it('should filter uids by privilege', (done) => {
-            privileges.categories.filterUids('find', categoryObj.cid, [1, 2, 3, 4], (err, uids) => {
-                assert.ifError(err);
+        it('should filter uids by privilege', async () => {
+            privileges.categories.filterUids('find', categoryObj.cid, [1, 2, 3, 4], (uids) => {
                 assert.deepEqual(uids, [1, 2, 3, 4]);
-                done();
             });
         });
 
-        it('should load category user privileges', (done) => {
-            privileges.categories.userPrivileges(categoryObj.cid, 1, (err, data) => {
-                assert.ifError(err);
+        it('should load category user privileges', async () => {
+            privileges.categories.userPrivileges(categoryObj.cid, 1, (data) => {
                 assert.deepEqual(data, {
                     find: false,
                     'posts:delete': false,
@@ -776,8 +771,6 @@ describe('Categories', () => {
                     'posts:view_deleted': false,
                     moderate: false,
                 });
-
-                done();
             });
         });
 
@@ -807,9 +800,8 @@ describe('Categories', () => {
             });
         });
 
-        it('should load category group privileges', (done) => {
-            privileges.categories.groupPrivileges(categoryObj.cid, 'registered-users', (err, data) => {
-                assert.ifError(err);
+        it('should load category group privileges', async () => {
+            privileges.categories.groupPrivileges(categoryObj.cid, 'registered-users', (data) => {
                 assert.deepEqual(data, {
                     'groups:find': true,
                     'groups:posts:edit': true,
@@ -828,8 +820,6 @@ describe('Categories', () => {
                     'groups:posts:view_deleted': false,
                     'groups:moderate': false,
                 });
-
-                done();
             });
         });
 
@@ -859,11 +849,9 @@ describe('Categories', () => {
             });
         });
 
-        it('should return false if cid is falsy', (done) => {
-            privileges.categories.isUserAllowedTo('find', null, adminUid, (err, isAllowed) => {
-                assert.ifError(err);
+        it('should return false if cid is falsy', async () => {
+            privileges.categories.isUserAllowedTo('find', null, adminUid, (isAllowed) => {
                 assert.equal(isAllowed, false);
-                done();
             });
         });
 

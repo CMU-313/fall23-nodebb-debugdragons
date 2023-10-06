@@ -1886,13 +1886,12 @@ describe('Controllers', () => {
             });
         });
 
-        it('should 403 if user does not have read privilege', (done) => {
-            privileges.categories.rescind(['groups:topics:read'], category.cid, 'registered-users', (err) => {
-                assert.ifError(err);
+        it('should 403 if user does not have read privilege', async () => {
+            privileges.categories.rescind(['groups:topics:read'], category.cid, 'registered-users', () => {
                 request(`${nconf.get('url')}/api/post/${pid}`, { jar: jar }, (err, res) => {
                     assert.ifError(err);
                     assert.equal(res.statusCode, 403);
-                    privileges.categories.give(['groups:topics:read'], category.cid, 'registered-users', done);
+                    privileges.categories.give(['groups:topics:read'], category.cid, 'registered-users');
                 });
             });
         });
@@ -2145,15 +2144,13 @@ describe('Controllers', () => {
             });
         });
 
-        it('should return 401 if not allowed to read', (done) => {
+        it('should return 401 if not allowed to read', async () => {
             categories.create({ name: 'hidden' }, (err, category) => {
                 assert.ifError(err);
-                privileges.categories.rescind(['groups:read'], category.cid, 'guests', (err) => {
-                    assert.ifError(err);
+                privileges.categories.rescind(['groups:read'], category.cid, 'guests', () => {
                     request(`${nconf.get('url')}/api/category/${category.slug}`, (err, res) => {
                         assert.ifError(err);
                         assert.equal(res.statusCode, 401);
-                        done();
                     });
                 });
             });
