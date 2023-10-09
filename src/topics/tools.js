@@ -159,7 +159,7 @@ module.exports = function (Topics) {
             throw new Error('[[error:cant-pin-scheduled]]');
         }
 
-        if (uid !== 'system' && !await privileges.topics.isAdminOrMod(tid, uid)) {
+        if (uid !== 'system' && !await privileges.topics.isAdminOrMod(tid, uid) && !await user.isInstructor(uid)) {
             throw new Error('[[error:no-privileges]]');
         }
 
