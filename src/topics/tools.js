@@ -150,7 +150,6 @@ module.exports = function (Topics) {
     };
 
     async function togglePin(tid, uid, pin) {
-        console.log("HIHIH")
         const topicData = await Topics.getTopicData(tid);
         if (!topicData) {
             throw new Error('[[error:no-topic]]');
