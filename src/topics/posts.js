@@ -15,11 +15,25 @@ const utils = require('../utils');
 const backlinkRegex = new RegExp(`(?:${nconf.get('url').replace('/', '\\/')}|\b|\\s)\\/topic\\/(\\d+)(?:\\/\\w+)?`, 'g');
 
 module.exports = function (Topics) {
+    // Check the type signature of onNewPostMade function
+    /**
+     * @param {Object} postData - Post data object
+     */
     Topics.onNewPostMade = async function (postData) {
         await Topics.updateLastPostTime(postData.tid, postData.timestamp);
         await Topics.addPostToTopic(postData.tid, postData);
     };
 
+    // Check the type signature of getTopicPosts function
+    /**
+     * @param {import('./topic').TopicObject} topicData
+     * @param {string} set
+     * @param {number} start
+     * @param {number} stop
+     * @param {number} uid
+     * @param {boolean} reverse
+     * @returns {Promise<import('./post').PostObject[]>}
+     */
     Topics.getTopicPosts = async function (topicData, set, start, stop, uid, reverse) {
         if (!topicData) {
             return [];
@@ -75,6 +89,16 @@ module.exports = function (Topics) {
         return result.posts;
     };
 
+    // Check the type signature of addEventStartEnd function
+    /**
+     * @param {import('./topic').TopicObject} topicData
+     * @param {string} set
+     * @param {number} start
+     * @param {number} stop
+     * @param {number} uid
+     * @param {boolean} reverse
+     * @returns {Promise<import('./post').PostObject[]>}
+     */
     async function addEventStartEnd(postData, set, reverse, topicData) {
         if (!postData.length) {
             return;
@@ -103,6 +127,12 @@ module.exports = function (Topics) {
         }
     }
 
+    // Check the type signature of addPostData function
+    /**
+     * @param {Array} postData - Array of post data
+     * @param {number} uid - User ID
+     * @returns {Promise<Array>} - Array of post data
+     */
     Topics.addPostData = async function (postData, uid) {
         if (!Array.isArray(postData) || !postData.length) {
             return [];
@@ -155,6 +185,11 @@ module.exports = function (Topics) {
         return result.posts;
     };
 
+    // Check the type signature of modifyPostsByPrivilege function
+    /**
+     * @param {Object} topicData - Topic data object
+     * @param {Object} topicPrivileges - Topic privileges object
+     */
     Topics.modifyPostsByPrivilege = function (topicData, topicPrivileges) {
         const loggedIn = parseInt(topicPrivileges.uid, 10) > 0;
         topicData.posts.forEach((post) => {
@@ -176,6 +211,10 @@ module.exports = function (Topics) {
         });
     };
 
+    // Check the type signature of addParentPosts function
+    /**
+     * @param {Array} postData - Array of post data
+     */
     Topics.addParentPosts = async function (postData) {
         let parentPids = postData.map(postObj => (postObj && postObj.hasOwnProperty('toPid') ? parseInt(postObj.toPid, 10) : null)).filter(Boolean);
 
@@ -201,6 +240,11 @@ module.exports = function (Topics) {
         });
     };
 
+    // Check the type signature of calculatePostIndices function
+    /**
+     * @param {Array} posts - Array of post data
+     * @param {number} start - Start index
+     */
     Topics.calculatePostIndices = function (posts, start) {
         posts.forEach((post, index) => {
             if (post) {
@@ -209,6 +253,11 @@ module.exports = function (Topics) {
         });
     };
 
+    // Check the type signature of getLatestUndeletedPid function
+    /**
+     * @param {number} tid - Topic ID
+     * @returns {Promise<number|null>} - Latest undeleted PID or null
+     */
     Topics.getLatestUndeletedPid = async function (tid) {
         const pid = await Topics.getLatestUndeletedReply(tid);
         if (pid) {
@@ -219,6 +268,11 @@ module.exports = function (Topics) {
         return mainPost.pid && !mainPost.deleted ? mainPost.pid : null;
     };
 
+    // Check the type signature of getLatestUndeletedReply function
+    /**
+     * @param {number} tid - Topic ID
+     * @returns {Promise<number|null>} - Latest undeleted reply PID or null
+     */
     Topics.getLatestUndeletedReply = async function (tid) {
         let isDeleted = false;
         let index = 0;
@@ -236,6 +290,11 @@ module.exports = function (Topics) {
         } while (isDeleted);
     };
 
+    // Check the type signature of addPostToTopic function
+    /**
+     * @param {number} tid - Topic ID
+     * @param {Object} postData - Post data object
+     */
     Topics.addPostToTopic = async function (tid, postData) {
         const mainPid = await Topics.getTopicField(tid, 'mainPid');
         if (!parseInt(mainPid, 10)) {
@@ -258,6 +317,11 @@ module.exports = function (Topics) {
         await Topics.updateTeaser(tid);
     };
 
+    // Check the type signature of removePostFromTopic function
+    /**
+     * @param {number} tid - Topic ID
+     * @param {Object} postData - Post data object
+     */
     Topics.removePostFromTopic = async function (tid, postData) {
         await db.sortedSetsRemove([
             `tid:${tid}:posts`,
@@ -274,6 +338,11 @@ module.exports = function (Topics) {
         await Topics.updateTeaser(tid);
     };
 
+    // Check the type signature of getPids function
+    /**
+     * @param {number} tid - Topic ID
+     * @returns {Promise<Array>} - Array of PIDs
+     */
     Topics.getPids = async function (tid) {
         let [mainPid, pids] = await Promise.all([
             Topics.getTopicField(tid, 'mainPid'),
@@ -285,23 +354,43 @@ module.exports = function (Topics) {
         return pids;
     };
 
+    // Check the type signature of increasePostCount function
+    /**
+     * @param {number} tid - Topic ID
+     */
     Topics.increasePostCount = async function (tid) {
         incrementFieldAndUpdateSortedSet(tid, 'postcount', 1, 'topics:posts');
     };
 
+     // Check the type signature of decreasePostCount function
+    /**
+     * @param {number} tid - Topic ID
+     */
     Topics.decreasePostCount = async function (tid) {
         incrementFieldAndUpdateSortedSet(tid, 'postcount', -1, 'topics:posts');
     };
 
+    // Check the type signature of increaseViewCount function
+    /**
+     * @param {number} tid - Topic ID
+     */
     Topics.increaseViewCount = async function (tid) {
         const cid = await Topics.getTopicField(tid, 'cid');
         incrementFieldAndUpdateSortedSet(tid, 'viewcount', 1, ['topics:views', `cid:${cid}:tids:views`]);
     };
 
+    // Check the type signature of increaseInstructorCount function
+    /**
+     * @param {number} tid - Topic ID
+     */
     Topics.increaseInstructorCount = async function (tid) {
         await db.incrObjectFieldBy(`topic:${tid}`, 'instructorcount', 1);
     };
 
+    // Check the type signature of decreaseInstructorCount function
+    /**
+     * @param {number} tid - Topic ID
+     */
     Topics.decreaseInstructorCount = async function (tid) {
         await db.incrObjectFieldBy(`topic:${tid}`, 'instructorcount', -1);
     };
@@ -311,24 +400,51 @@ module.exports = function (Topics) {
         await db[Array.isArray(set) ? 'sortedSetsAdd' : 'sortedSetAdd'](set, value, tid);
     }
 
+    // Check the type signature of getTitleByPid function
+    /**
+     * @param {number} pid - Post ID
+     * @returns {Promise<string|null>} - Post title or null
+     */
     Topics.getTitleByPid = async function (pid) {
         return await Topics.getTopicFieldByPid('title', pid);
     };
 
+    // Check the type signature of getTopicFieldByPid function
+    /**
+     * @param {string} field - Field name
+     * @param {number} pid - Post ID
+     * @returns {Promise<any|null>} - Field value or null
+     */
     Topics.getTopicFieldByPid = async function (field, pid) {
         const tid = await posts.getPostField(pid, 'tid');
         return await Topics.getTopicField(tid, field);
     };
 
+     // Check the type signature of getTopicDataByPid function
+    /**
+     * @param {number} pid - Post ID
+     * @returns {Promise<Object|null>} - Topic data object or null
+     */
     Topics.getTopicDataByPid = async function (pid) {
         const tid = await posts.getPostField(pid, 'tid');
         return await Topics.getTopicData(tid);
     };
 
+    // Check the type signature of getPostCount function
+    /**
+     * @param {number} tid - Topic ID
+     * @returns {Promise<number|null>} - Post count or null
+     */
     Topics.getPostCount = async function (tid) {
         return await db.getObjectField(`topic:${tid}`, 'postcount');
     };
 
+    // Check the type signature of getPostReplies function
+    /**
+     * @param {Array} pids - Array of PIDs
+     * @param {number} callerUid - Caller User ID
+     * @returns {Promise<Array>} - Array of reply data
+     */
     async function getPostReplies(pids, callerUid) {
         const keys = pids.map(pid => `pid:${pid}:replies`);
         const arrayOfReplyPids = await db.getSortedSetsMembers(keys);
@@ -383,6 +499,10 @@ module.exports = function (Topics) {
         return returnData;
     }
 
+        // Check the type signature of syncBacklinks function
+    /**
+     * @param {Object} postData - Post data object
+     */
     Topics.syncBacklinks = async (postData) => {
         if (!postData) {
             throw new Error('[[error:invalid-data]]');
