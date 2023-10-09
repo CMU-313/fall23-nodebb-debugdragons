@@ -285,7 +285,15 @@ module.exports = function (Topics) {
         return pids;
     };
 
+    /*
+    * Increases post count for the topic
+    * @param <number> tid
+    */
     Topics.increasePostCount = async function (tid) {
+        if (typeof tid !== 'number')
+        {
+            throw new TypeError("Expected tid to be a number");    
+        }
         incrementFieldAndUpdateSortedSet(tid, 'postcount', 1, 'topics:posts');
     };
 

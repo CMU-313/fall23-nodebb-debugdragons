@@ -92,6 +92,10 @@ Posts.getPostIndices = async function (posts, uid) {
     return indices.map(index => (utils.isNumber(index) ? parseInt(index, 10) + 1 : 0));
 };
 
+Posts.setAnonymous = async function (pid) {
+    db.setObjectField
+};
+
 Posts.modifyPostByPrivilege = function (post, privileges) {
     if (post && post.deleted && !(post.selfPost || privileges['posts:view_deleted'])) {
         post.content = '[[topic:post_is_deleted]]';
