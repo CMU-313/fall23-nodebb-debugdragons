@@ -22,16 +22,17 @@ privsTopics.get = async function (tid, uid) {
         'posts:delete', 'posts:view_deleted', 'read', 'purge',
     ];
     const topicData = await topics.getTopicFields(tid, ['cid', 'uid', 'locked', 'deleted', 'scheduled']);
-    const [userPrivileges, isAdministrator, isModerator, disabled] = await Promise.all([
+    const [userPrivileges, isAdministrator, isModerator, isInstructor, disabled] = await Promise.all([
         helpers.isAllowedTo(privs, uid, topicData.cid),
         user.isAdministrator(uid),
         user.isModerator(uid, topicData.cid),
+        user.isInstructor(uid),
         categories.getCategoryField(topicData.cid, 'disabled'),
     ]);
     const privData = _.zipObject(privs, userPrivileges);
     const isOwner = uid > 0 && uid === topicData.uid;
     const isAdminOrMod = isAdministrator || isModerator;
-    const editable = isAdminOrMod;
+    const editable = isAdminOrMod || isInstructor;
     const deletable = (privData['topics:delete'] && (isOwner || isModerator)) || isAdministrator;
     const mayReply = privsTopics.canViewDeletedScheduled(topicData, {}, false, privData['topics:schedule']);
 
@@ -47,13 +48,14 @@ privsTopics.get = async function (tid, uid) {
         'posts:view_deleted': privData['posts:view_deleted'] || isAdministrator,
         read: privData.read || isAdministrator,
         purge: (privData.purge && (isOwner || isModerator)) || isAdministrator,
-
         view_thread_tools: editable || deletable,
         editable: editable,
         deletable: deletable,
         view_deleted: isAdminOrMod || isOwner || privData['posts:view_deleted'],
         view_scheduled: privData['topics:schedule'] || isAdministrator,
         isAdminOrMod: isAdminOrMod,
+        isInstructor: isInstructor,
+        isOwner: isOwner,
         disabled: disabled,
         tid: tid,
         uid: uid,
@@ -159,9 +161,10 @@ privsTopics.canEdit = async function (tid, uid) {
 };
 
 privsTopics.isOwnerOrAdminOrMod = async function (tid, uid) {
-    const [isOwner, isAdminOrMod] = await Promise.all([
+    const [isOwner, isAdminOrMod, isInstructor] = await Promise.all([
         topics.isOwner(tid, uid),
         privsTopics.isAdminOrMod(tid, uid),
+        user.isInstructor(uid)
     ]);
     return isOwner || isAdminOrMod;
 };
