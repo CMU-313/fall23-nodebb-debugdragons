@@ -154,6 +154,8 @@ TopicObject:
                 type: number
         isOwner:
           type: boolean
+        isAnonymous:
+          type: boolean
         ignored:
           type: boolean
         unread:
@@ -191,6 +193,9 @@ TopicObjectSlim:
   allOf:
     - type: object
       properties:
+        isAnonymous:
+          type: boolean
+          description: User to Anonymous user swtich
         tid:
           type: number
           description: A topic identifier
