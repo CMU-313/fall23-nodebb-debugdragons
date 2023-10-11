@@ -181,12 +181,19 @@ module.exports = function (Topics) {
             postData: postData,
         };
     };
+    /**
+    * Creates a new reply topic post given specific data
+    * @param {Object} data - Data
+    * @returns {Object} - Object containing data for the reply post
+    */
     Topics.reply = async function (data) {
         data = await plugins.hooks.fire('filter:topic.reply', data);
         const { tid } = data;
         const { uid } = data;
         const topicData = await Topics.getTopicData(tid);
-
+        if (typeof data.title !== 'string' && typeof data.title !== 'undefined') {
+            throw new TypeError('data.title must be a string or undefined');
+        }
         await canReply(data, topicData);
 
         data.cid = topicData.cid;
