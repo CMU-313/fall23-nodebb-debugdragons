@@ -27,10 +27,10 @@ module.exports = function (Topics) {
         if (typeof data !== 'object') {
             throw new TypeError('data parameter should be object');
         }
-        if (typeof data.timestamp !== 'number' && typeof data.timestamp !== 'undefined') {
-            throw new TypeError('data.timestamp should number, or undefined');
+        if (typeof data.timestamp !== 'boolean' && typeof data.timestamp !== 'undefined' && typeof data.timestamp !== 'number') {
+            throw new TypeError('data.timestamp should be a boolean');
         }
-        if (!Array.isArray(data.tags) && typeof data.tags === 'undefined') {
+        if (!Array.isArray(data.tags) && typeof data.tags !== 'undefined') {
             throw new TypeError('data.tags should be an array or undefined');
         }
         if (typeof data.title !== 'string') {
