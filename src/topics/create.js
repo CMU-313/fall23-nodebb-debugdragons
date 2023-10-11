@@ -16,8 +16,26 @@ const categories = require('../categories');
 const translator = require('../translator');
 
 module.exports = function (Topics) {
+    /**
+    * Creates a new topic given specific data
+    *
+    * @param {Object} data - Data for topic
+    * @returns {number} - ID of topic
+    */
     Topics.create = async function (data) {
         // This is an internal method, consider using Topics.post instead
+        if (typeof data !== 'object') {
+            throw new TypeError('data parameter should be object');
+        }
+        if (typeof data.timestamp !== 'number' || typeof data.timestamp !== 'undefined') {
+            throw new TypeError('data.timestamp should number, or undefined');
+        }
+        if (Array.isArray(data.tags) || typeof data.tags === 'undefined') {
+            throw new TypeError('data.tags should be an array or undefined');
+        }
+        if (typeof data.title !== 'string') {
+            throw new TypeError('data.title should be a string');
+        }
         const timestamp = data.timestamp || Date.now();
 
         const tid = await db.incrObjectField('global', 'nextTid');
