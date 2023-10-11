@@ -94,10 +94,18 @@ module.exports = function (Topics) {
         plugins.hooks.fire('action:topic.save', { topic: _.clone(topicData), data: data });
         return topicData.tid;
     };
-
+    /**
+    * Creates a new post in a topic given specific data
+    * @param {Object} data  - Data for post
+    * @returns {Object} - Object containing data about topic and post
+    */
     Topics.post = async function (data) {
         data = await plugins.hooks.fire('filter:topic.post', data);
         const { uid } = data;
+
+        if (typeof data.title !== 'string') {
+            throw new TypeError('data.title is not a string');
+        }
 
         data.title = String(data.title).trim();
         data.tags = data.tags || [];
@@ -173,12 +181,10 @@ module.exports = function (Topics) {
             postData: postData,
         };
     };
-
     Topics.reply = async function (data) {
         data = await plugins.hooks.fire('filter:topic.reply', data);
         const { tid } = data;
         const { uid } = data;
-
         const topicData = await Topics.getTopicData(tid);
 
         await canReply(data, topicData);
