@@ -290,11 +290,17 @@ module.exports = function (Topics) {
         }
         return postData;
     }
-
+    /**
+     * Checks that title falls within constraints of length
+     * @param {string} title - Title of post
+     */
     Topics.checkTitle = function (title) {
         check(title, meta.config.minimumTitleLength, meta.config.maximumTitleLength, 'title-too-short', 'title-too-long');
     };
-
+    /**
+     * Checks that content is within the length limit
+     * @param {string} content - content of post
+     */
     Topics.checkContent = function (content) {
         check(content, meta.config.minimumPostLength, meta.config.maximumPostLength, 'content-too-short', 'content-too-long');
     };
