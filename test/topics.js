@@ -24,6 +24,7 @@ const helpers = require('./helpers');
 const socketPosts = require('../src/socket.io/posts');
 const socketTopics = require('../src/socket.io/topics');
 const apiTopics = require('../src/api/topics');
+const { post } = require('../src/controllers/composer');
 
 const requestType = util.promisify((type, url, opts, cb) => {
     request[type](url, opts, (err, res, body) => cb(err, { res: res, body: body }));
@@ -33,12 +34,16 @@ describe('Topic\'s', () => {
     let topic;
     let categoryObj;
     let adminUid;
+    let instructorUid;
+    let studentUid;
     let adminJar;
     let csrf_token;
     let fooUid;
 
     before(async () => {
         adminUid = await User.create({ username: 'admin', password: '123456' });
+        instructorUid = await User.create({ username: 'instructor', password: '123456', accounttype: 'instructor' });
+        studentUid = await User.create({ username: 'student', password: '123456' });
         fooUid = await User.create({ username: 'foo' });
         await groups.join('administrators', adminUid);
         const adminLogin = await helpers.loginUser('admin', '123456');
@@ -54,7 +59,7 @@ describe('Topic\'s', () => {
             categoryId: categoryObj.cid,
             title: 'Test Topic Title',
             content: 'The content of test topic',
-            tags: ['anonymous']
+            tags: ['anonymous'],
         };
     });
 
@@ -77,22 +82,6 @@ describe('Topic\'s', () => {
             }, (err, result) => {
                 assert.ifError(err);
                 assert(result);
-                topic.tid = result.topicData.tid;
-                done();
-            });
-        });
-
-        it('should create a new anomyous topic', (done) => {
-            topics.post({
-                uid: topic.userId,
-                title: topic.title,
-                content: topic.content,
-                cid: topic.categoryId,
-                tags: topic.tags
-            }, (err, result) => {
-                assert.ifError(err);
-                assert(result);
-                assert(result.topicData.anonymous)
                 topic.tid = result.topicData.tid;
                 done();
             });
@@ -143,6 +132,22 @@ describe('Topic\'s', () => {
             topics.isOwner(topic.tid, 0, (err, isOwner) => {
                 assert.ifError(err);
                 assert(!isOwner);
+                done();
+            });
+        });
+
+        it('should create a new anomyous topic', (done) => {
+            topics.post({
+                uid: topic.userId,
+                title: topic.title,
+                content: topic.content,
+                cid: topic.categoryId,
+                tags: topic.tags,
+            }, (err, result) => {
+                assert.ifError(err);
+                assert(result);
+                assert(result.topicData.anonymous);
+                topic.tid = result.topicData.tid;
                 done();
             });
         });
@@ -264,6 +269,7 @@ describe('Topic\'s', () => {
     describe('.reply', () => {
         let newTopic;
         let newPost;
+        let instructorReply;
 
         before((done) => {
             topics.post({
@@ -278,6 +284,12 @@ describe('Topic\'s', () => {
 
                 newTopic = result.topicData;
                 newPost = result.postData;
+                instructorReply = posts.create({
+                    uid: instructorUid,
+                    title: topic.title,
+                    content: topic.content,
+                    cid: topic.categoryId,
+                });
                 done();
             });
         });
@@ -321,6 +333,11 @@ describe('Topic\'s', () => {
                 assert.equal(err.message, '[[error:no-privileges]]');
                 done();
             });
+        });
+
+        it('should change instructor count on reply', async () => {
+            const itopic = await topics.addPostToTopic(newTopic.tid, instructorReply);
+            assert(itopic.instructorCount);
         });
 
         it('should fail to create new reply with empty content', (done) => {
@@ -703,6 +720,48 @@ describe('Topic\'s', () => {
 
         it('should unpin topic', async () => {
             await apiTopics.unpin({ uid: adminUid }, { tids: [newTopic.tid], cid: categoryObj.cid });
+            const pinned = await topics.getTopicField(newTopic.tid, 'pinned');
+            assert.strictEqual(pinned, 0);
+        });
+
+        it('should show isInstructor privilege for instructor is true', async () => {
+            const result = await privileges.topics.get(newTopic.tid, instructorUid);
+            assert.strictEqual(result.isInstructor, true);
+        });
+
+        it('should show isInstructor privilege for instructor is false', async () => {
+            const result = await privileges.topics.get(newTopic.tid, studentUid);
+            assert.strictEqual(result.isInstructor, false);
+        });
+
+        it('should show editable privilege for instructor is true', async () => {
+            const result = await privileges.topics.get(newTopic.tid, instructorUid);
+            assert.strictEqual(result.editable, true);
+        });
+
+        it('should show editable privilege for instructor is false', async () => {
+            const result = await privileges.topics.get(newTopic.tid, studentUid);
+            assert.strictEqual(result.isOwner, false);
+        });
+
+        it('should show isOwner privilege for owner of topic is true', async () => {
+            const result = await privileges.topics.get(newTopic.tid, adminUid);
+            assert.strictEqual(result.isOwner, true);
+        });
+
+        it('should show isOwner privilege for owner of topic is false', async () => {
+            const result = await privileges.topics.get(newTopic.tid, studentUid);
+            assert.strictEqual(result.isOwner, false);
+        });
+
+        it('should pin topic for instructor', async () => {
+            await apiTopics.pin({ uid: instructorUid }, { tids: [newTopic.tid], cid: categoryObj.cid });
+            const pinned = await topics.getTopicField(newTopic.tid, 'pinned');
+            assert.strictEqual(pinned, 1);
+        });
+
+        it('should unpin topic for instructor', async () => {
+            await apiTopics.unpin({ uid: instructorUid }, { tids: [newTopic.tid], cid: categoryObj.cid });
             const pinned = await topics.getTopicField(newTopic.tid, 'pinned');
             assert.strictEqual(pinned, 0);
         });
