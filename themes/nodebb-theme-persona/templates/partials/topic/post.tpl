@@ -1,20 +1,11 @@
 <div class="clearfix post-header">
     <div class="icon pull-left">
         <!-- Conditional statement for Anonymous feature  -->
-        {{{if isAnonymous}}}
-        <a href="#">
-            <div style = "width:50px;
-                          height:48px;
-                          background-color: #817a6e;
-                          border-radius: 50%">
-            </div>
-        </a>
-        {{{else}}}
+        
         <a href="<!-- IF posts.user.userslug -->{config.relative_path}/user/{posts.user.userslug}<!-- ELSE -->#<!-- ENDIF posts.user.userslug -->">
             {buildAvatar(posts.user, "sm2x", true, "", "user/picture")}
             <i component="user/status" class="fa fa-circle status {posts.user.status}" title="[[global:{posts.user.status}]]"></i>
         </a>
-        {{{end}}}
     </div>
 
     <small class="pull-left">
@@ -99,7 +90,7 @@
             <a component="post/upvote" href="#" class="<!-- IF posts.upvoted -->upvoted<!-- ENDIF posts.upvoted -->">
                 <i class="fa fa-chevron-up"></i>
             </a>
-
+            
             <span component="post/vote-count" data-votes="{posts.votes}">{posts.votes}</span>
 
             <!-- IF !downvote:disabled -->

@@ -92,7 +92,7 @@ describe('Topic\'s', () => {
             }, (err, result) => {
                 assert.ifError(err);
                 assert(result);
-                assert(result.topicData.isAnonymous)
+                assert(result.topicData.anonymous)
                 topic.tid = result.topicData.tid;
                 done();
             });

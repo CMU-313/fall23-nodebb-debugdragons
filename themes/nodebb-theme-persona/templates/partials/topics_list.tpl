@@ -32,6 +32,16 @@
 
         <!-- Edit this part to change the layout/spacing/formatting of the topic -->
         <div class="col-md-6 col-sm-9 col-xs-10 content">   
+            {{{ if topics.anonymous }}}
+                <a href="#">
+                <div class="avatar pull-left" 
+                style = "width:50px;
+                              height:48px;
+                              background-color: #817a6e;
+                              border-radius: 50%">
+                </div>
+                </a>
+            {{{ else }}}
             <div class="avatar pull-left">
                 <!-- IF showSelect -->
                 <div class="select" component="topic/select">
@@ -54,6 +64,7 @@
                 </a>
                 <!-- ENDIF !showSelect -->
             </div>
+            {{{ end }}}
 
             <h2 component="topic/header" class="title">
                 <i component="topic/scheduled" class="fa fa-clock-o <!-- IF !topics.scheduled -->hide<!-- ENDIF !topics.scheduled -->" title="[[topic:scheduled]]"></i>
