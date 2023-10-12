@@ -4,6 +4,7 @@
 const _ = require('lodash');
 const validator = require('validator');
 const nconf = require('nconf');
+const assert = require('assert');
 
 const db = require('../database');
 const user = require('../user');
@@ -15,12 +16,34 @@ const utils = require('../utils');
 const backlinkRegex = new RegExp(`(?:${nconf.get('url').replace('/', '\\/')}|\b|\\s)\\/topic\\/(\\d+)(?:\\/\\w+)?`, 'g');
 
 module.exports = function (Topics) {
+    // Adding post to topic
+    /**
+     * @param {Promise<object>} postData
+     * @returns {Promise<void>}
+    */
     Topics.onNewPostMade = async function (postData) {
+        // Assert function parameter types in the body
+        assert(typeof postData === 'object' && postData !== null, 'postData must be an object');
         await Topics.updateLastPostTime(postData.tid, postData.timestamp);
         await Topics.addPostToTopic(postData.tid, postData);
     };
 
+    // Gets the topic of post
+    /**
+     * @param {Promise<object>} topicData
+     * @param {Promise<string>} set
+     * @param {Promise<number>} start
+     * @param {Promise<number>} stop
+     * @param {Promise<number>} uid
+     * @param {Promise<boolean>} reverse
+     * @returns {Promise<object[]>}
+     */
     Topics.getTopicPosts = async function (topicData, set, start, stop, uid, reverse) {
+        // Assert function parameter types in the body
+        assert(typeof set === 'string', 'set must be a string');
+        assert(typeof start === 'number' && typeof stop === 'number', 'start and stop must be numbers');
+        assert(typeof uid === 'number', 'uid must be a number');
+        assert(typeof reverse === 'boolean', 'reverse must be a boolean');
         if (!topicData) {
             return [];
         }
@@ -72,10 +95,26 @@ module.exports = function (Topics) {
             uid: uid,
             posts: await Topics.addPostData(postData, uid),
         });
-        return result.posts;
+        const postsResult = result.posts;
+        // Assert function return types in the body
+        assert(Array.isArray(postsResult), 'Expected result to be an array');
+        return postsResult;
     };
 
+    // Adds start and end of event
+    /**
+     * @param {Promise<object[]>} postData
+     * @param {Promise<string>} set
+     * @param {Promise<boolean>} reverse
+     * @param {Promise<object>} topicData
+     * @returns {Promise<void>}
+     */
     async function addEventStartEnd(postData, set, reverse, topicData) {
+        // Assert function parameter types in the body
+        assert(Array.isArray(postData), 'postData must be an array');
+        assert(typeof set === 'string', 'set must be a string');
+        assert(typeof reverse === 'boolean', 'reverse must be a boolean');
+        assert(typeof topicData === 'object' && topicData !== null, 'topicData must be an object');
         if (!postData.length) {
             return;
         }
@@ -103,7 +142,15 @@ module.exports = function (Topics) {
         }
     }
 
+    // Adds data to post
+    /**
+     * @param {Promise<object[]>} postData
+     * @param {Promise<number>} uid
+     * @returns {Promise<object[]>}
+     */
     Topics.addPostData = async function (postData, uid) {
+        // Assert function parameter types in the body
+        assert(typeof uid === 'number' || typeof uid === 'string', 'uid must be a number or string');
         if (!Array.isArray(postData) || !postData.length) {
             return [];
         }
@@ -152,10 +199,22 @@ module.exports = function (Topics) {
             posts: postData,
             uid: uid,
         });
-        return result.posts;
+        const postResult = result.posts;
+        // Assert function return types in the body
+        assert(Array.isArray(postResult), 'Expected result to be an array');
+        return postResult;
     };
 
+    // Modifies posts by privileges
+    /**
+     * @param {Promise<object>} topicData
+     * @param {Promise<object>} topicPrivileges
+     * @returns {Promise<void>}
+    */
     Topics.modifyPostsByPrivilege = function (topicData, topicPrivileges) {
+        // Assert function parameter types in the body
+        assert(typeof topicData === 'object', 'topicData must be an object');
+        assert(typeof topicPrivileges === 'object', 'topicPrivileges must be a object');
         const loggedIn = parseInt(topicPrivileges.uid, 10) > 0;
         topicData.posts.forEach((post) => {
             if (post) {
@@ -176,7 +235,14 @@ module.exports = function (Topics) {
         });
     };
 
+    // Adding parent posts
+    /**
+     * @param {Promise<object[]>} postData
+     * @returns {Promise<void>}
+    */
     Topics.addParentPosts = async function (postData) {
+        // Assert function parameter types in the body
+        assert(Array.isArray(postData), 'postData must be an array');
         let parentPids = postData.map(postObj => (postObj && postObj.hasOwnProperty('toPid') ? parseInt(postObj.toPid, 10) : null)).filter(Boolean);
 
         if (!parentPids.length) {
@@ -201,7 +267,16 @@ module.exports = function (Topics) {
         });
     };
 
+    // Calculates post indicies
+    /**
+     * @param {Promise<object>} posts
+     * @param {Promise<number>} start
+     * @returns {Promise<void>}
+    */
     Topics.calculatePostIndices = function (posts, start) {
+        // Assert function parameter types in the body
+        assert(typeof posts === 'object', 'posts must be an object');
+        assert(typeof start === 'number', 'start must be a number');
         posts.forEach((post, index) => {
             if (post) {
                 post.index = start + index + 1;
@@ -209,17 +284,34 @@ module.exports = function (Topics) {
         });
     };
 
+    // Gets the latest non-deleted post id
+    /**
+     * @param {Promise<string> || Promise<number>} tid
+     * @returns {Promise<number> || Promise<object>}
+    */
     Topics.getLatestUndeletedPid = async function (tid) {
+        // Assert function parameter types in the body
+        assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         const pid = await Topics.getLatestUndeletedReply(tid);
         if (pid) {
             return pid;
         }
         const mainPid = await Topics.getTopicField(tid, 'mainPid');
         const mainPost = await posts.getPostFields(mainPid, ['pid', 'deleted']);
-        return mainPost.pid && !mainPost.deleted ? mainPost.pid : null;
+        const result = mainPost.pid && !mainPost.deleted ? mainPost.pid : null;
+        // Assert function return types in the body
+        assert(typeof result === 'number' || typeof result === 'object', 'result must be a number or object');
+        return result;
     };
 
+    // Gets the latest non-deleted reply
+    /**
+     * @param {Promise<string> || Promise<number>} tid
+     * @returns {Promise<number> || Promise<null>}
+    */
     Topics.getLatestUndeletedReply = async function (tid) {
+        // Assert function parameter types in the body
+        assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         let isDeleted = false;
         let index = 0;
         do {
@@ -236,7 +328,16 @@ module.exports = function (Topics) {
         } while (isDeleted);
     };
 
+    // Adds post to topic
+    /**
+     * @param {Promise<string> || Promise<number>} tid
+     * @param {Promise<object>} postData
+     * @returns {Promise<void>}
+    */
     Topics.addPostToTopic = async function (tid, postData) {
+        // Assert function parameter types in the body
+        assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
+        assert(typeof postData === 'object', 'postData must be an object');
         const mainPid = await Topics.getTopicField(tid, 'mainPid');
         if (!parseInt(mainPid, 10)) {
             await Topics.setTopicField(tid, 'mainPid', postData.pid);
@@ -258,7 +359,16 @@ module.exports = function (Topics) {
         await Topics.updateTeaser(tid);
     };
 
+    // Removes post to topic
+    /**
+     * @param {Promise<string> || Promise<number>} tid
+     * @param {Promise<object>} postData
+     * @returns {Promise<void>}
+    */
     Topics.removePostFromTopic = async function (tid, postData) {
+        // Assert function parameter types in the body
+        assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
+        assert(typeof postData === 'object', 'postData must be an object');
         await db.sortedSetsRemove([
             `tid:${tid}:posts`,
             `tid:${tid}:posts:votes`,
@@ -274,7 +384,14 @@ module.exports = function (Topics) {
         await Topics.updateTeaser(tid);
     };
 
+    // Removes post to topic
+    /**
+     * @param {Promise<string> || Promise<number>} tid
+     * @returns {Promise<object>}
+    */
     Topics.getPids = async function (tid) {
+        // Assert function parameter types in the body
+        assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         let [mainPid, pids] = await Promise.all([
             Topics.getTopicField(tid, 'mainPid'),
             db.getSortedSetRange(`tid:${tid}:posts`, 0, -1),
@@ -282,54 +399,156 @@ module.exports = function (Topics) {
         if (parseInt(mainPid, 10)) {
             pids = [mainPid].concat(pids);
         }
+        const result = pids;
+        // Assert function return types in the body
+        assert(typeof result === 'object', 'result must be an object');
         return pids;
     };
 
+    // Increases the post count
+    /**
+     * @param {Promise<string> || Promise<number>} tid
+     * @returns {Promise<void>}
+    */
     Topics.increasePostCount = async function (tid) {
+        // Assert function parameter types in the body
+        assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         incrementFieldAndUpdateSortedSet(tid, 'postcount', 1, 'topics:posts');
     };
 
+    // Decreases the post count
+    /**
+     * @param {Promise<string> || Promise<number>} tid
+     * @returns {Promise<void>}
+    */
     Topics.decreasePostCount = async function (tid) {
+        // Assert function parameter types in the body
+        assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         incrementFieldAndUpdateSortedSet(tid, 'postcount', -1, 'topics:posts');
     };
 
+    // Increases the view count for the post
+    /**
+     * @param {Promise<string> || Promise<number>} tid
+     * @returns {Promise<void>}
+    */
     Topics.increaseViewCount = async function (tid) {
+        // Assert function parameter types in the body
+        assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         const cid = await Topics.getTopicField(tid, 'cid');
         incrementFieldAndUpdateSortedSet(tid, 'viewcount', 1, ['topics:views', `cid:${cid}:tids:views`]);
     };
 
+    // Increases the instructor count
+    /**
+     * @param {Promise<string> || Promise<number>} tid
+     * @returns {Promise<void>}
+    */
     Topics.increaseInstructorCount = async function (tid) {
+        // Assert function parameter types in the body
+        assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         await db.incrObjectFieldBy(`topic:${tid}`, 'instructorcount', 1);
     };
 
+    // Decreases the instructor count
+    /**
+     * @param {Promise<string> || Promise<number>} tid
+     * @returns {Promise<void>}
+    */
     Topics.decreaseInstructorCount = async function (tid) {
+        // Assert function parameter types in the body
+        assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         await db.incrObjectFieldBy(`topic:${tid}`, 'instructorcount', -1);
     };
 
+    // Increments field and updates sorted set
+    /**
+     * @param {Promise<string> || Promise<number>} tid
+     * @param {Promise<string>} field
+     * @param {Promise<number>} by
+     * @param {Promise<string>} set
+    * @returns {Promise<void>}
+    */
     async function incrementFieldAndUpdateSortedSet(tid, field, by, set) {
+        // Assert function parameter types in the body
+        assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
+        assert(typeof field === 'string', 'field must be a string');
+        assert(typeof by === 'number', 'by must be a number');
+        assert(typeof set === 'string', 'set must be a string');
         const value = await db.incrObjectFieldBy(`topic:${tid}`, field, by);
         await db[Array.isArray(set) ? 'sortedSetsAdd' : 'sortedSetAdd'](set, value, tid);
     }
 
+    // Gets the title of post by id
+    /**
+     * @param {Promise<string> || Promise<number>} pid
+     * @returns {Promise<string>}
+    */
     Topics.getTitleByPid = async function (pid) {
-        return await Topics.getTopicFieldByPid('title', pid);
+        // Assert function parameter types in the body
+        assert(typeof pid === 'number' || typeof pid === 'string', 'pid must be a number or string');
+        const result = await Topics.getTopicFieldByPid('title', pid);
+        // Assert function return types in the body
+        assert(typeof result === 'string', 'result must be a string');
+        return result;
     };
 
+    // Gets the topic field by post id
+    /**
+     * @param {Promise<string> || Promise<number>} pid
+     * @param {Promise<string>} field
+     * @returns {Promise<string>}
+    */
     Topics.getTopicFieldByPid = async function (field, pid) {
+        // Assert function parameter types in the body
+        assert(typeof field === 'string', 'field must be a string');
+        assert(typeof pid === 'number' || typeof pid === 'string', 'pid must be a number or string');
         const tid = await posts.getPostField(pid, 'tid');
-        return await Topics.getTopicField(tid, field);
+        const result = await Topics.getTopicField(tid, field);
+        // Assert function return types in the body
+        assert(typeof result === 'string', 'result must be a string');
+        return result;
     };
 
+    // Gets the topic data by post id
+    /**
+     * @param {Promise<string> || Promise<number>} pid
+     * @returns {Promise<object>}
+    */
     Topics.getTopicDataByPid = async function (pid) {
+        // Assert function parameter types in the body
+        assert(typeof pid === 'number' || typeof pid === 'string', 'pid must be a number or string');
         const tid = await posts.getPostField(pid, 'tid');
-        return await Topics.getTopicData(tid);
+        const result = await Topics.getTopicData(tid);
+        // Assert function return types in the body
+        assert(typeof result === 'object', 'result must be a object');
+        return result;
     };
 
+    // Gets the post count
+    /**
+     * @param {Promise<string> || Promise<number>} tid
+     * @returns {Promise<string>}
+    */
     Topics.getPostCount = async function (tid) {
-        return await db.getObjectField(`topic:${tid}`, 'postcount');
+        // Assert function parameter types in the body
+        assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
+        const result = await db.getObjectField(`topic:${tid}`, 'postcount');
+        // Assert function return types in the body
+        assert(typeof result === 'string', 'result must be a string');
+        return result;
     };
 
+    // Gets post replies
+    /**
+     * @param {Promise<object>} pids
+     * @param {Promise<number || Promise<string>} callerUid
+     * @returns {Promise<object>}
+    */
     async function getPostReplies(pids, callerUid) {
+        // Assert function parameter types in the body
+        assert(typeof pids === 'object', 'pids must be a object');
+        assert(typeof callerUid === 'number' || typeof callerUid === 'string', 'callerUid must be a number or string');
         const keys = pids.map(pid => `pid:${pid}:replies`);
         const arrayOfReplyPids = await db.getSortedSetsMembers(keys);
 
@@ -379,11 +598,18 @@ module.exports = function (Topics) {
 
             return currentData;
         });
-
+        // Assert function return types in the body
+        assert(typeof returnData === 'object', 'returnData must be an object');
         return returnData;
     }
 
+    // Asynchronously syncs backlinks for a given post's content.
+    /**
+     * @param {Promise<object>} postData
+     * @returns {Promise<number>}
+    */
     Topics.syncBacklinks = async (postData) => {
+        // Assert function parameter types in the body
         if (!postData) {
             throw new Error('[[error:invalid-data]]');
         }
@@ -415,7 +641,9 @@ module.exports = function (Topics) {
                 href: `/post/${pid}`,
             });
         }));
-
-        return add.length + (current - remove);
+        const result = add.length + (current - remove);
+        // Assert function return types in the body
+        assert(typeof result === 'number', 'result must be a number');
+        return result;
     };
 };
