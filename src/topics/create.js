@@ -305,8 +305,32 @@ module.exports = function (Topics) {
         check(content, meta.config.minimumPostLength, meta.config.maximumPostLength, 'content-too-short', 'content-too-long');
     };
 
+    /**
+    * Checks if the length falls in specific parameters given
+    * @param {string} item - Item being checked
+    * @param {number} min - Min length
+    * @param {number} max - Max length
+]   * @param {string} minError - if length short, throw minError
+    * @param {string} maxError - if length too long, throw maxError
+    */
     function check(item, min, max, minError, maxError) {
         // Trim and remove HTML (latter for composers that send in HTML, like redactor)
+        if (typeof item !== 'string') {
+            throw new TypeError('Item is not a string');
+        }
+        if (typeof min !== 'number') {
+            throw new TypeError('Min is not a number');
+        }
+        if (typeof max !== 'number') {
+            throw new TypeError('Max is not a number');
+        }
+        if (typeof minError !== 'string') {
+            throw new TypeError('Error for item being too short and needs to be string');
+        }
+        if (typeof maxError !== 'string') {
+            throw new TypeError('Error for item being too long and needs to be string');
+        }
+        
         if (typeof item === 'string') {
             item = utils.stripHTMLTags(item).trim();
         }
