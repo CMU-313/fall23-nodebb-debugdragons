@@ -534,8 +534,6 @@ module.exports = function (Topics) {
         // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         const result = await db.getObjectField(`topic:${tid}`, 'postcount');
-        // Assert function return types in the body
-        // assert(typeof result === 'string', 'result must be a string');
         return result;
     };
 
