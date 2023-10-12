@@ -21,12 +21,16 @@
         {{{ end }}}
 
         <div class="post-info">
-            <a href="{config.relative_path}/user/{../user.userslug}">{buildAvatar(../user, "md", true, "user-img not-responsive")}</a>
+            {{{ if ../anonymous }}}
+            
+            {{{ else }}}
+                <a href="{config.relative_path}/user/{../user.userslug}">{buildAvatar(../user, "md", true, "user-img not-responsive")}</a>
 
-            <div class="post-author">
-                <a href="{config.relative_path}/user/{../user.userslug}">{../user.displayname}</a><br />
-                <span class="timeago" title="{../timestampISO}"></span>
-            </div>
+                <div class="post-author">
+                    <a href="{config.relative_path}/user/{../user.userslug}">{../user.displayname}</a><br />
+                    <span class="timeago" title="{../timestampISO}"></span>
+                </div>
+            {{{ end }}}
         </div>
     </div>
 </li>

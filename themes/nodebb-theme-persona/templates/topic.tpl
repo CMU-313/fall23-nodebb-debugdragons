@@ -63,13 +63,17 @@
 
         <ul component="topic" class="posts timeline" data-tid="{tid}" data-cid="{cid}">
             {{{each posts}}}
+                
                 <li component="post" class="{{{ if posts.deleted }}}deleted{{{ end }}} {{{ if posts.selfPost }}}self-post{{{ end }}} {{{ if posts.topicOwnerPost }}}topic-owner-post{{{ end }}}" <!-- IMPORT partials/data/topic.tpl -->>
                     <a component="post/anchor" data-index="{posts.index}" id="{posts.index}"></a>
 
                     <meta itemprop="datePublished" content="{posts.timestampISO}">
                     <meta itemprop="dateModified" content="{posts.editedISO}">
-
-                    <!-- IMPORT partials/topic/post.tpl -->
+                    {{{if anonymous}}}
+                        <!-- IMPORT partials/topic/anonpost.tpl -->
+                    {{{ else }}}
+                        <!-- IMPORT partials/topic/post.tpl -->
+                    {{{ end }}}
                 </li>
                 {renderTopicEvents(@index, config.topicPostSort)}
             {{{end}}}

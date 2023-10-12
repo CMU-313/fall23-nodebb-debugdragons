@@ -43,14 +43,20 @@ module.exports = function (Topics) {
             postcount: 0,
             viewcount: 0,
             instructorcount: 0,
+            anonymous: 0,
         };
-
         if (Array.isArray(data.tags) && data.tags.length) {
+            for (const itag of data.tags) {
+                if (itag === 'anonymous') {
+                    topicData.anonymous = 1;
+                }
+            }
             topicData.tags = data.tags.join(',');
         }
 
         const result = await plugins.hooks.fire('filter:topic.create', { topic: topicData, data: data });
         topicData = result.topic;
+
         await db.setObject(`topic:${topicData.tid}`, topicData);
 
         const timestampedSortedSetKeys = [
@@ -158,6 +164,7 @@ module.exports = function (Topics) {
         topicData.mainPost = postData;
         topicData.index = 0;
         postData.index = 0;
+        postData.anonymous = topicData.anonymous;
 
         if (topicData.scheduled) {
             await Topics.delete(tid);
@@ -213,7 +220,9 @@ module.exports = function (Topics) {
 
         data.ip = data.req ? data.req.ip : null;
         let postData = await posts.create(data);
+        postData.anonymous = topicData.anonymous;
         postData = await onNewPost(postData, data);
+        postData.anonymous = topicData.anonymous;
 
         const settings = await user.getSettings(uid);
         if (uid > 0 && settings.followTopicsOnReply) {

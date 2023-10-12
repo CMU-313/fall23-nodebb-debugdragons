@@ -24,6 +24,7 @@ const helpers = require('./helpers');
 const socketPosts = require('../src/socket.io/posts');
 const socketTopics = require('../src/socket.io/topics');
 const apiTopics = require('../src/api/topics');
+const { post } = require('../src/controllers/composer');
 
 const requestType = util.promisify((type, url, opts, cb) => {
     request[type](url, opts, (err, res, body) => cb(err, { res: res, body: body }));
@@ -58,6 +59,7 @@ describe('Topic\'s', () => {
             categoryId: categoryObj.cid,
             title: 'Test Topic Title',
             content: 'The content of test topic',
+            tags: ['anonymous'],
         };
     });
 
@@ -130,6 +132,22 @@ describe('Topic\'s', () => {
             topics.isOwner(topic.tid, 0, (err, isOwner) => {
                 assert.ifError(err);
                 assert(!isOwner);
+                done();
+            });
+        });
+
+        it('should create a new anomyous topic', (done) => {
+            topics.post({
+                uid: topic.userId,
+                title: topic.title,
+                content: topic.content,
+                cid: topic.categoryId,
+                tags: topic.tags,
+            }, (err, result) => {
+                assert.ifError(err);
+                assert(result);
+                assert(result.topicData.anonymous);
+                topic.tid = result.topicData.tid;
                 done();
             });
         });
@@ -308,6 +326,12 @@ describe('Topic\'s', () => {
                 assert.equal(err.message, '[[error:no-privileges]]');
                 done();
             });
+        });
+
+        it('should change instructor count on reply', async () => {
+            const ipost = await topics.reply({ uid: instructorUid, content: 'test reply', tid: newTopic.tid, toPid: newPost.pid });
+            const topicIData = await topics.getTopicField(newTopic.tid, 'instructorcount');
+            assert(topicIData);
         });
 
         it('should fail to create new reply with empty content', (done) => {
@@ -1582,10 +1606,10 @@ describe('Topic\'s', () => {
             const data = await topics.reply({ uid: uid, timestamp: Date.now(), content: 'some content', tid: tid });
             await sleep(2500);
             let count = await User.notifications.getUnreadCount(adminUid);
-            assert.strictEqual(count, 1);
+            assert.strictEqual(count, 2);
             await socketTopics.markTopicNotificationsRead({ uid: adminUid }, [tid]);
             count = await User.notifications.getUnreadCount(adminUid);
-            assert.strictEqual(count, 0);
+            assert.strictEqual(count, 1);
         });
 
         it('should fail with invalid data', (done) => {

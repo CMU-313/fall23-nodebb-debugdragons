@@ -1,16 +1,18 @@
 <div class="clearfix post-header">
     <div class="icon pull-left">
         <!-- Conditional statement for Anonymous feature  -->
-        
-        <a href="<!-- IF posts.user.userslug -->{config.relative_path}/user/{posts.user.userslug}<!-- ELSE -->#<!-- ENDIF posts.user.userslug -->">
-            {buildAvatar(posts.user, "sm2x", true, "", "user/picture")}
-            <i component="user/status" class="fa fa-circle status {posts.user.status}" title="[[global:{posts.user.status}]]"></i>
+        <a href="#">
+            <div style = "width:50px;
+                          height:48px;
+                          background-color: #817a6e;
+                          border-radius: 50%">
+            </div>
         </a>
     </div>
 
     <small class="pull-left">
         <strong>
-            <a href="<!-- IF posts.user.userslug -->{config.relative_path}/user/{posts.user.userslug}<!-- ELSE -->#<!-- ENDIF posts.user.userslug -->" itemprop="author" data-username="{posts.user.username}" data-uid="{posts.user.uid}">{posts.user.displayname}</a>
+            <a itemprop="author">Anonymous</a>
         </strong>
 
         <!-- IMPORT partials/topic/badge.tpl -->
@@ -83,22 +85,21 @@
         <span class="post-tools">
             <a component="post/reply" href="#" class="no-select <!-- IF !privileges.topics:reply -->hidden<!-- ENDIF !privileges.topics:reply -->">[[topic:reply]]</a>
             <a component="post/quote" href="#" class="no-select <!-- IF !privileges.topics:reply -->hidden<!-- ENDIF !privileges.topics:reply -->">[[topic:quote]]</a>
-
         </span>
 
         <!-- IF !reputation:disabled -->
         <span class="votes">
-            <a component="post/upvote" href="#" class="<!-- IF posts.upvoted -->upvoted<!-- ENDIF posts.upvoted -->" style="color: #326077;">
-                <!-- <i class="fa fa-chevron-up"></i> -->
-                Endorse
-            </a> 
+            <a component="post/upvote" href="#" class="<!-- IF posts.upvoted -->upvoted<!-- ENDIF posts.upvoted -->">
+                <i class="fa fa-chevron-up"></i>
+            </a>
+            
             <span component="post/vote-count" data-votes="{posts.votes}">{posts.votes}</span>
 
-            <!-- <!-- IF !downvote:disabled -->
+            <!-- IF !downvote:disabled -->
             <a component="post/downvote" href="#" class="<!-- IF posts.downvoted -->downvoted<!-- ENDIF posts.downvoted -->">
                 <i class="fa fa-chevron-down"></i>
             </a>
-            <!-- ENDIF !downvote:disabled --> -->
+            <!-- ENDIF !downvote:disabled -->
         </span>
         <!-- ENDIF !reputation:disabled -->
 

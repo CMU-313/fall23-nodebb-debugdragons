@@ -1,12 +1,23 @@
 <!-- IF privileges.topics:reply -->
 <div component="topic/quickreply/container" class="clearfix quick-reply">
     <div class="icon pull-left hidden-xs">
+            <!-- Conditional statement for Anonymous feature  -->
+            {{{if isAnonymous}}}
+            <a href="#">
+                <div style = "width:50px;
+                                height:48px;
+                                background-color: #817a6e;
+                                border-radius: 50%">
+                </div>
+            </a>
+            {{{else}}}
         <a href="<!-- IF posts.user.userslug -->{config.relative_path}/user/{posts.user.userslug}<!-- ELSE -->#<!-- ENDIF posts.user.userslug -->">
             {buildAvatar(loggedInUser, "46", true, "", "user/picture")}
             <!-- IF loggedInUser.status -->
             <i component="user/status" class="fa fa-circle status {loggedInUser.status}" title="[[global:{loggedInUser.status}]]"></i>
             <!-- ENDIF loggedInUser.status -->
         </a>
+        {{{end}}}            
     </div>
     <form method="post" action="{config.relative_path}/compose">
         <input type="hidden" name="tid" value="{tid}" />

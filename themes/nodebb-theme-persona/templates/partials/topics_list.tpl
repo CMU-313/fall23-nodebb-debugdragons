@@ -15,6 +15,8 @@
             font-size: 24px;
             color: white;
         }
+        .unread{
+            background-color: #fcffde;
         .pinned {
             background-color: #cefad0;
         }
@@ -23,7 +25,7 @@
 
 <ul component="category" class="topic-list" itemscope itemtype="http://www.schema.org/ItemList" data-nextstart="{nextStart}" data-set="{set}">
     {{{each topics}}}
-    <li component="category/topic" class="row clearfix category-item {function.generateTopicClass} {{if topics.pinned}}pinned{{/if}}" <!-- IMPORT partials/data/category.tpl -->>
+    <li component="category/topic" class="row clearfix category-item {function.generateTopicClass} {{if topics.pinned}}pinned{{/if}} {{if topics.unread}}unread{{/if}}" <!-- IMPORT partials/data/category.tpl -->>
         <link itemprop="url" content="{config.relative_path}/topic/{../slug}" />
         <meta itemprop="name" content="{function.stripTags, ../title}" />
         <meta itemprop="itemListOrder" content="descending" />
@@ -32,6 +34,16 @@
 
         <!-- Edit this part to change the layout/spacing/formatting of the topic -->
         <div class="col-md-6 col-sm-9 col-xs-10 content">   
+            {{{ if topics.anonymous }}}
+                <a href="#">
+                <div class="avatar pull-left" 
+                style = "width:50px;
+                              height:48px;
+                              background-color: #817a6e;
+                              border-radius: 50%">
+                </div>
+                </a>
+            {{{ else }}}
             <div class="avatar pull-left">
                 <!-- IF showSelect -->
                 <div class="select" component="topic/select">
@@ -54,6 +66,7 @@
                 </a>
                 <!-- ENDIF !showSelect -->
             </div>
+            {{{ end }}}
 
             <h2 component="topic/header" class="title">
                 <i component="topic/scheduled" class="fa fa-clock-o <!-- IF !topics.scheduled -->hide<!-- ENDIF !topics.scheduled -->" title="[[topic:scheduled]]"></i>
