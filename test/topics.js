@@ -269,7 +269,6 @@ describe('Topic\'s', () => {
     describe('.reply', () => {
         let newTopic;
         let newPost;
-        let instructorReply;
 
         before((done) => {
             topics.post({
@@ -284,12 +283,6 @@ describe('Topic\'s', () => {
 
                 newTopic = result.topicData;
                 newPost = result.postData;
-                instructorReply = posts.create({
-                    uid: instructorUid,
-                    title: topic.title,
-                    content: topic.content,
-                    cid: topic.categoryId,
-                });
                 done();
             });
         });
@@ -336,7 +329,7 @@ describe('Topic\'s', () => {
         });
 
         it('should change instructor count on reply', async () => {
-            const itopic = await topics.addPostToTopic(newTopic.tid, instructorReply);
+            const itopic = await topics.addPostToTopic(newTopic.tid, {uid: instructorUid, content: 'test reply', tid: newTopic.tid, toPid.newPost.pid});
             assert(itopic.instructorCount);
         });
 
