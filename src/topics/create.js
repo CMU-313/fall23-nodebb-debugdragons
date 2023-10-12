@@ -295,6 +295,9 @@ module.exports = function (Topics) {
      * @param {string} title - Title of post
      */
     Topics.checkTitle = function (title) {
+        if (typeof title !== 'string') {
+            throw new TypeError('Title is not a string');
+        }
         check(title, meta.config.minimumTitleLength, meta.config.maximumTitleLength, 'title-too-short', 'title-too-long');
     };
     /**
@@ -302,6 +305,9 @@ module.exports = function (Topics) {
      * @param {string} content - content of post
      */
     Topics.checkContent = function (content) {
+        if (typeof content !== 'string') {
+            throw new TypeError('Content is not a string');
+        }
         check(content, meta.config.minimumPostLength, meta.config.maximumPostLength, 'content-too-short', 'content-too-long');
     };
 
@@ -330,7 +336,7 @@ module.exports = function (Topics) {
         if (typeof maxError !== 'string') {
             throw new TypeError('Error for item being too long and needs to be string');
         }
-        
+
         if (typeof item === 'string') {
             item = utils.stripHTMLTags(item).trim();
         }
@@ -341,8 +347,14 @@ module.exports = function (Topics) {
             throw new Error(`[[error:${maxError}, ${max}]]`);
         }
     }
-
+    /**
+    * Validates guest handle based on username and meeting requirements
+    * @param {Object} data - User information
+    */
     async function guestHandleValid(data) {
+        if (typeof data !== 'string') {
+            throw new TypeError('Item is not a string');
+        }
         if (meta.config.allowGuestHandles && parseInt(data.uid, 10) === 0 && data.handle) {
             if (data.handle.length > meta.config.maximumUsernameLength) {
                 throw new Error('[[error:guest-handle-invalid]]');
@@ -353,7 +365,11 @@ module.exports = function (Topics) {
             }
         }
     }
-
+    /**
+    * Checks if user can reply to a topic
+    * @param {Object} data - User data
+    * @param {Object} topicData - Topic data
+    */
     async function canReply(data, topicData) {
         if (!topicData) {
             throw new Error('[[error:no-topic]]');
