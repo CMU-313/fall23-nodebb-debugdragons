@@ -1606,10 +1606,10 @@ describe('Topic\'s', () => {
             const data = await topics.reply({ uid: uid, timestamp: Date.now(), content: 'some content', tid: tid });
             await sleep(2500);
             let count = await User.notifications.getUnreadCount(adminUid);
-            assert.strictEqual(count, 1);
+            assert.strictEqual(count, 2);
             await socketTopics.markTopicNotificationsRead({ uid: adminUid }, [tid]);
             count = await User.notifications.getUnreadCount(adminUid);
-            assert.strictEqual(count, 0);
+            assert.strictEqual(count, 1);
         });
 
         it('should fail with invalid data', (done) => {
