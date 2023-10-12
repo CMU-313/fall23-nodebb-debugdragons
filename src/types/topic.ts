@@ -18,6 +18,7 @@ export type TopicObjectCoreProperties = {
   unreplied: boolean;
   anonymous: number;
   icons: string[];
+  instructorcount: number;
 };
 
 export type TopicObjectOptionalProperties = {
@@ -68,7 +69,6 @@ export type TopicSlimProperties = {
   votes: string;
   teaserPid: number | string;
   thumbs: Thumb[];
-  instructorcount: number;
 };
 
 export type Thumb = {

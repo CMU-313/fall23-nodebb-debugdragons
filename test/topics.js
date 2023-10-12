@@ -329,8 +329,9 @@ describe('Topic\'s', () => {
         });
 
         it('should change instructor count on reply', async () => {
-            const itopic = await topics.reply({ uid: instructorUid, content: 'test reply', tid: newTopic.tid, toPid: newPost.pid });
-            assert(newTopic.instructorCount);
+            const ipost = await topics.reply({ uid: instructorUid, content: 'test reply', tid: newTopic.tid, toPid: newPost.pid });
+            const topicIData = await topics.getTopicField(newTopic.tid, 'instructorcount');
+            assert(topicIData);
         });
 
         it('should fail to create new reply with empty content', (done) => {
