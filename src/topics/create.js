@@ -249,6 +249,12 @@ module.exports = function (Topics) {
     * @returns {Object} - Updated data post
     */
     async function onNewPost(postData, data) {
+        if (typeof postData !== 'object') {
+            throw new TypeError('postData must be object');
+        }
+        if (typeof data !== 'object') {
+            throw new TypeError('data must be object');
+        }
         const { tid } = postData;
         const { uid } = postData;
         await Topics.markAsUnreadForAll(tid);
@@ -279,7 +285,9 @@ module.exports = function (Topics) {
         postData.selfPost = false;
         postData.timestampISO = utils.toISOString(postData.timestamp);
         postData.topic.title = String(postData.topic.title);
-
+        if (typeof postData !== 'object') {
+            throw new TypeError('postData must be object');
+        }
         return postData;
     }
 
