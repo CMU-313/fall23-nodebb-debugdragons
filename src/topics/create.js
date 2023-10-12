@@ -27,15 +27,6 @@ module.exports = function (Topics) {
         if (typeof data !== 'object') {
             throw new TypeError('data parameter should be object');
         }
-        if (typeof data.timestamp !== 'boolean' && typeof data.timestamp !== 'undefined' && typeof data.timestamp !== 'number') {
-            throw new TypeError('data.timestamp should be a boolean');
-        }
-        if (!Array.isArray(data.tags) && typeof data.tags !== 'undefined') {
-            throw new TypeError('data.tags should be an array or undefined');
-        }
-        if (typeof data.title !== 'string') {
-            throw new TypeError('data.title should be a string');
-        }
         const timestamp = data.timestamp || Date.now();
 
         const tid = await db.incrObjectField('global', 'nextTid');
@@ -106,8 +97,8 @@ module.exports = function (Topics) {
         data = await plugins.hooks.fire('filter:topic.post', data);
         const { uid } = data;
 
-        if (typeof data.title !== 'string') {
-            throw new TypeError('data.title is not a string');
+        if (typeof data !== 'object') {
+            throw new TypeError('data is not an object');
         }
 
         data.title = String(data.title).trim();
@@ -178,10 +169,10 @@ module.exports = function (Topics) {
         if (parseInt(uid, 10) && !topicData.scheduled) {
             user.notifications.sendTopicNotificationToFollowers(uid, topicData, postData);
         }
-        if (typeof topicData !== "object") {
+        if (typeof topicData !== 'object') {
             throw new TypeError('topicData needs to be an object');
         }
-        if (typeof postData !== "object") {
+        if (typeof postData !== 'object') {
             throw new TypeError('postData needs to be an object');
         }
         return {
@@ -199,8 +190,8 @@ module.exports = function (Topics) {
         const { tid } = data;
         const { uid } = data;
         const topicData = await Topics.getTopicData(tid);
-        if (typeof data.title !== 'string' && typeof data.title !== 'undefined') {
-            throw new TypeError('data.title must be a string or undefined');
+        if (typeof data !== 'object') {
+            throw new TypeError('data must be ab object');
         }
         await canReply(data, topicData);
 
@@ -246,7 +237,6 @@ module.exports = function (Topics) {
 
         analytics.increment(['posts', `posts:byCid:${data.cid}`]);
         plugins.hooks.fire('action:topic.reply', { post: _.clone(postData), data: data });
-
         return postData;
     };
     /**
