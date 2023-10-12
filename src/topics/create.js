@@ -178,7 +178,12 @@ module.exports = function (Topics) {
         if (parseInt(uid, 10) && !topicData.scheduled) {
             user.notifications.sendTopicNotificationToFollowers(uid, topicData, postData);
         }
-
+        if (typeof topicData !== "object") {
+            throw new TypeError('topicData needs to be an object');
+        }
+        if (typeof postData !== "object") {
+            throw new TypeError('postData needs to be an object');
+        }
         return {
             topicData: topicData,
             postData: postData,
