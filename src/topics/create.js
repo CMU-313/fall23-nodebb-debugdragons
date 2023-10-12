@@ -16,8 +16,17 @@ const categories = require('../categories');
 const translator = require('../translator');
 
 module.exports = function (Topics) {
+    /**
+    * Creates a new topic given specific data
+    *
+    * @param {Object} data - Data for topic
+    * @returns {number} - ID of topic
+    */
     Topics.create = async function (data) {
         // This is an internal method, consider using Topics.post instead
+        if (typeof data !== 'object') {
+            throw new TypeError('data parameter should be object');
+        }
         const timestamp = data.timestamp || Date.now();
 
         const tid = await db.incrObjectField('global', 'nextTid');
@@ -80,12 +89,23 @@ module.exports = function (Topics) {
         }
 
         plugins.hooks.fire('action:topic.save', { topic: _.clone(topicData), data: data });
+        if (typeof topicData.tid !== 'number') {
+            throw new TypeError('topicData.tid should be a number');
+        }
         return topicData.tid;
     };
-
+    /**
+    * Creates a new post in a topic given specific data
+    * @param {Object} data  - Data for post
+    * @returns {Object} - Object containing data about topic and post
+    */
     Topics.post = async function (data) {
         data = await plugins.hooks.fire('filter:topic.post', data);
         const { uid } = data;
+
+        if (typeof data !== 'object') {
+            throw new TypeError('data is not an object');
+        }
 
         data.title = String(data.title).trim();
         data.tags = data.tags || [];
@@ -156,21 +176,30 @@ module.exports = function (Topics) {
         if (parseInt(uid, 10) && !topicData.scheduled) {
             user.notifications.sendTopicNotificationToFollowers(uid, topicData, postData);
         }
-
+        if (typeof topicData !== 'object') {
+            throw new TypeError('topicData needs to be an object');
+        }
+        if (typeof postData !== 'object') {
+            throw new TypeError('postData needs to be an object');
+        }
         return {
             topicData: topicData,
             postData: postData,
         };
     };
-
+    /**
+    * Creates a new reply topic post given specific data
+    * @param {Object} data - Data
+    * @returns {Object} - Object containing data for the reply post
+    */
     Topics.reply = async function (data) {
         data = await plugins.hooks.fire('filter:topic.reply', data);
         const { tid } = data;
         const { uid } = data;
-
         const topicData = await Topics.getTopicData(tid);
-        console.log(topicData.anonymous);
-
+        if (typeof data !== 'object') {
+            throw new TypeError('data must be ab object');
+        }
         await canReply(data, topicData);
 
         data.cid = topicData.cid;
@@ -217,11 +246,24 @@ module.exports = function (Topics) {
 
         analytics.increment(['posts', `posts:byCid:${data.cid}`]);
         plugins.hooks.fire('action:topic.reply', { post: _.clone(postData), data: data });
-
+        if (typeof postData !== 'object') {
+            throw new TypeError('postData must be object');
+        }
         return postData;
     };
-
+    /**
+    * Data on a new post
+    * @param {Object} postData - Data
+    * @param {Object} data - Additional information related to the post
+    * @returns {Object} - Updated data post
+    */
     async function onNewPost(postData, data) {
+        if (typeof postData !== 'object') {
+            throw new TypeError('postData must be object');
+        }
+        if (typeof data !== 'object') {
+            throw new TypeError('data must be object');
+        }
         const { tid } = postData;
         const { uid } = postData;
         await Topics.markAsUnreadForAll(tid);
@@ -252,20 +294,61 @@ module.exports = function (Topics) {
         postData.selfPost = false;
         postData.timestampISO = utils.toISOString(postData.timestamp);
         postData.topic.title = String(postData.topic.title);
-
+        if (typeof postData !== 'object') {
+            throw new TypeError('postData must be object');
+        }
         return postData;
     }
-
+    /**
+     * Checks that title falls within constraints of length
+     * @param {string} title - Title of post
+     * @return {Promise<void>}
+     */
     Topics.checkTitle = function (title) {
+        if (typeof title !== 'string') {
+            throw new TypeError('Title is not a string');
+        }
         check(title, meta.config.minimumTitleLength, meta.config.maximumTitleLength, 'title-too-short', 'title-too-long');
     };
-
+    /**
+     * Checks that content is within the length limit
+     * @param {string} content - content of post
+     * @return {Promise<void>}
+     */
     Topics.checkContent = function (content) {
+        if (typeof content !== 'string') {
+            throw new TypeError('Content is not a string');
+        }
         check(content, meta.config.minimumPostLength, meta.config.maximumPostLength, 'content-too-short', 'content-too-long');
     };
 
+    /**
+    * Checks if the length falls in specific parameters given
+    * @param {string} item - Item being checked
+    * @param {number} min - Min length
+    * @param {number} max - Max length
+]   * @param {string} minError - if length short, throw minError
+    * @param {string} maxError - if length too long, throw maxError
+    * @return {Promise<void>}
+    */
     function check(item, min, max, minError, maxError) {
         // Trim and remove HTML (latter for composers that send in HTML, like redactor)
+        if (typeof item !== 'string') {
+            throw new TypeError('Item is not a string');
+        }
+        if (typeof min !== 'number') {
+            throw new TypeError('Min is not a number');
+        }
+        if (typeof max !== 'number') {
+            throw new TypeError('Max is not a number');
+        }
+        if (typeof minError !== 'string') {
+            throw new TypeError('Error for item being too short and needs to be string');
+        }
+        if (typeof maxError !== 'string') {
+            throw new TypeError('Error for item being too long and needs to be string');
+        }
+
         if (typeof item === 'string') {
             item = utils.stripHTMLTags(item).trim();
         }
@@ -276,8 +359,15 @@ module.exports = function (Topics) {
             throw new Error(`[[error:${maxError}, ${max}]]`);
         }
     }
-
+    /**
+    * Validates guest handle based on username and meeting requirements
+    * @param {Object} data - User information
+    * @return {Promise<void>}
+    */
     async function guestHandleValid(data) {
+        if (typeof data !== 'object') {
+            throw new TypeError('Data is not an object');
+        }
         if (meta.config.allowGuestHandles && parseInt(data.uid, 10) === 0 && data.handle) {
             if (data.handle.length > meta.config.maximumUsernameLength) {
                 throw new Error('[[error:guest-handle-invalid]]');
@@ -288,8 +378,19 @@ module.exports = function (Topics) {
             }
         }
     }
-
+    /**
+    * Checks if user can reply to a topic
+    * @param {Object} data - User data
+    * @param {Object} topicData - Topic data
+    * @return {Promise<void>}
+    */
     async function canReply(data, topicData) {
+        if (typeof data !== 'object') {
+            throw new TypeError('Data is not a Object');
+        }
+        if (typeof topicData !== 'object') {
+            throw new TypeError('topicData is not an object');
+        }
         if (!topicData) {
             throw new Error('[[error:no-topic]]');
         }

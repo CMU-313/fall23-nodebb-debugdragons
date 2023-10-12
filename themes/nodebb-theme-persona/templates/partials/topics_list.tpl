@@ -17,13 +17,15 @@
         }
         .unread{
             background-color: #fcffde;
+        .pinned {
+            background-color: #cefad0;
         }
     </style>
 </head>
 
 <ul component="category" class="topic-list" itemscope itemtype="http://www.schema.org/ItemList" data-nextstart="{nextStart}" data-set="{set}">
     {{{each topics}}}
-    <li component="category/topic" class="row clearfix category-item {function.generateTopicClass} {{if topics.unread}}unread{{/if}}" <!-- IMPORT partials/data/category.tpl -->>
+    <li component="category/topic" class="row clearfix category-item {function.generateTopicClass} {{if topics.pinned}}pinned{{/if}} {{if topics.unread}}unread{{/if}}" <!-- IMPORT partials/data/category.tpl -->>
         <link itemprop="url" content="{config.relative_path}/topic/{../slug}" />
         <meta itemprop="name" content="{function.stripTags, ../title}" />
         <meta itemprop="itemListOrder" content="descending" />
@@ -113,7 +115,8 @@
         <div class="col-md-1 hidden-sm hidden-xs stats stats-votes">
             <!-- IF !reputation:disabled -->
             <span class="human-readable-number" title="{topics.votes}">{topics.votes}</span><br />
-            <small>[[global:votes]]</small>
+            <!-- <small>[[global:votes]]</small> --> 
+            <small>ENDORSEMENTS</small>
             <!-- END -->
         </div>
 
