@@ -293,6 +293,7 @@ module.exports = function (Topics) {
     /**
      * Checks that title falls within constraints of length
      * @param {string} title - Title of post
+     * @return {Promise<void>}
      */
     Topics.checkTitle = function (title) {
         if (typeof title !== 'string') {
@@ -303,6 +304,7 @@ module.exports = function (Topics) {
     /**
      * Checks that content is within the length limit
      * @param {string} content - content of post
+     * @return {Promise<void>}
      */
     Topics.checkContent = function (content) {
         if (typeof content !== 'string') {
@@ -318,6 +320,7 @@ module.exports = function (Topics) {
     * @param {number} max - Max length
 ]   * @param {string} minError - if length short, throw minError
     * @param {string} maxError - if length too long, throw maxError
+    * @return {Promise<void>}
     */
     function check(item, min, max, minError, maxError) {
         // Trim and remove HTML (latter for composers that send in HTML, like redactor)
@@ -350,6 +353,7 @@ module.exports = function (Topics) {
     /**
     * Validates guest handle based on username and meeting requirements
     * @param {Object} data - User information
+    * @return {Promise<void>}
     */
     async function guestHandleValid(data) {
         if (typeof data !== 'object') {
@@ -369,6 +373,7 @@ module.exports = function (Topics) {
     * Checks if user can reply to a topic
     * @param {Object} data - User data
     * @param {Object} topicData - Topic data
+    * @return {Promise<void>}
     */
     async function canReply(data, topicData) {
         if (typeof data !== 'object') {
