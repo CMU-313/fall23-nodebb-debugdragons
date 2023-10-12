@@ -329,7 +329,7 @@ describe('Topic\'s', () => {
         });
 
         it('should change instructor count on reply', async () => {
-            const itopic = await topics.addPostToTopic(newTopic.tid, { uid: instructorUid, content: 'test reply', tid: newTopic.tid, toPid: newPost.pid });
+            const itopic = await topics.reply({ uid: instructorUid, content: 'test reply', tid: newTopic.tid, toPid: newPost.pid });
             assert(itopic.instructorCount);
         });
 
