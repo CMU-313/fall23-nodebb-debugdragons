@@ -117,7 +117,7 @@ privsTopics.filterUids = async function (privilege, tid, uids) {
     }
 
     return uids.filter((uid, index) => !disabled &&
-            ((allowedTo[index] && (topicData.scheduled || !topicData.deleted)) || isAdmins[index]));
+        ((allowedTo[index] && (topicData.scheduled || !topicData.deleted)) || isAdmins[index]));
 };
 
 privsTopics.canPurge = async function (tid, uid) {
@@ -161,10 +161,9 @@ privsTopics.canEdit = async function (tid, uid) {
 };
 
 privsTopics.isOwnerOrAdminOrMod = async function (tid, uid) {
-    const [isOwner, isAdminOrMod, isInstructor] = await Promise.all([
+    const [isOwner, isAdminOrMod] = await Promise.all([
         topics.isOwner(tid, uid),
         privsTopics.isAdminOrMod(tid, uid),
-        user.isInstructor(uid)
     ]);
     return isOwner || isAdminOrMod;
 };

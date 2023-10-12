@@ -707,12 +707,12 @@ describe('Topic\'s', () => {
         it('should show editable privilege for instructor is true', async () => {
             const result = await privileges.topics.get(newTopic.tid, instructorUid);
             assert.strictEqual(result.editable, true);
-        })
+        });
 
         it('should show editable privilege for instructor is false', async () => {
             const result = await privileges.topics.get(newTopic.tid, studentUid);
             assert.strictEqual(result.isOwner, false);
-        })
+        });
 
         it('should show isOwner privilege for owner of topic is true', async () => {
             const result = await privileges.topics.get(newTopic.tid, adminUid);
@@ -722,7 +722,7 @@ describe('Topic\'s', () => {
         it('should show isOwner privilege for owner of topic is false', async () => {
             const result = await privileges.topics.get(newTopic.tid, studentUid);
             assert.strictEqual(result.isOwner, false);
-        })
+        });
 
         it('should pin topic for instructor', async () => {
             await apiTopics.pin({ uid: instructorUid }, { tids: [newTopic.tid], cid: categoryObj.cid });
