@@ -352,8 +352,8 @@ module.exports = function (Topics) {
     * @param {Object} data - User information
     */
     async function guestHandleValid(data) {
-        if (typeof data !== 'string') {
-            throw new TypeError('Item is not a string');
+        if (typeof data !== 'object') {
+            throw new TypeError('Data is not an object');
         }
         if (meta.config.allowGuestHandles && parseInt(data.uid, 10) === 0 && data.handle) {
             if (data.handle.length > meta.config.maximumUsernameLength) {
@@ -371,6 +371,12 @@ module.exports = function (Topics) {
     * @param {Object} topicData - Topic data
     */
     async function canReply(data, topicData) {
+        if (typeof data !== 'object') {
+            throw new TypeError('Data is not a Object');
+        }
+        if (typeof topicData !== 'object') {
+            throw new TypeError('topicData is not an object');
+        }
         if (!topicData) {
             throw new Error('[[error:no-topic]]');
         }
