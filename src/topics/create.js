@@ -36,13 +36,10 @@ module.exports = function (Topics) {
             instructorcount: 0,
             anonymous: 0,
         };
-        
         if (Array.isArray(data.tags) && data.tags.length) {
-            for (const itag of data.tags)
-            {
-                if (itag == 'anonymous')
-                {
-                    topicData.anonymous = 1;    
+            for (const itag of data.tags) {
+                if (itag === 'anonymous') {
+                    topicData.anonymous = 1;
                 }
             }
             topicData.tags = data.tags.join(',');
@@ -125,7 +122,6 @@ module.exports = function (Topics) {
 
         let postData = data;
         postData.tid = tid;
-        
         postData.ip = data.req ? data.req.ip : null;
         postData.isMain = true;
         postData = await posts.create(postData);
