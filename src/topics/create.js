@@ -92,6 +92,9 @@ module.exports = function (Topics) {
         }
 
         plugins.hooks.fire('action:topic.save', { topic: _.clone(topicData), data: data });
+        if (typeof topicData.tid !== 'number') {
+            throw new TypeError('topicData.tid should be a number');
+        }
         return topicData.tid;
     };
     /**
@@ -241,7 +244,12 @@ module.exports = function (Topics) {
 
         return postData;
     };
-
+    /**
+    * Data on a new post
+    * @param {Object} postData - Data
+    * @param {Object} data - Additional information related to the post
+    * @returns {Object} - Updated data post
+    */
     async function onNewPost(postData, data) {
         const { tid } = postData;
         const { uid } = postData;
