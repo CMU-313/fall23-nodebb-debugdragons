@@ -17,6 +17,7 @@
         }
         .unread{
             background-color: #fcffde;
+        }
         .pinned {
             background-color: #cefad0;
         }
