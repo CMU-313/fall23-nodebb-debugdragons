@@ -2,11 +2,11 @@
 
 ## Table of Contents
 
-Endorsing Answers
-Question Pinning
-Instructor Commented
-Anonymous Posting
-Unread Topics Highlight
+- Endorsing Answers
+- Question Pinning
+- Instructor Commented
+- Anonymous Posting
+- Unread Topics Highlight
 
 ## Endorsing Answers
 
@@ -69,7 +69,7 @@ Additional test were added to the following file for the feature:
     - Lines 751 - 755: should pin topic for instructor
     - Lines 757 - 761: should unpin topic for instructor
 
-These additional tests are sufficient for covering the changes we made for the feature because this feature utilizes the privileges that are granted for each user for a given category/topic. Therefore, we checked depending on the account (i.e student/instructor or admin/mod/instructor) if privilege was either granted or not based.
+These additional tests are sufficient for covering the changes we made for the feature because this feature utilizes the privileges that are granted for each user for a given category/topic. Therefore, we checked depending on the account (i.e student/instructor or admin/mod/instructor) if privilege was either granted or not.
 
 ## Instructor Commented
 
@@ -101,7 +101,7 @@ This additional test is sufficient for covering the changes we made for the feat
 
 Additional test was added to the following file for the feature:
 1. [test/topics.js](fall23-nodebb-debugdragons/test/topics.js)
-Lines 139-153: should create a new anonymous topic
+    - Lines 139-153: should create a new anonymous topic
 
 This additional test is sufficient for the new feature because the functions altered are already covered by the testing suite, and this is the only implemented functionality: marking the anonymous state of a topic.
 
