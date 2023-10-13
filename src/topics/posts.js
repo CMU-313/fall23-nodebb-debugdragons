@@ -40,7 +40,7 @@ module.exports = function (Topics) {
      */
     Topics.getTopicPosts = async function (topicData, set, start, stop, uid, reverse) {
         // Assert function parameter types in the body
-        assert(typeof set === 'string', 'set must be a string');
+        assert(typeof set === 'string' || Array.isArray(set), 'set must be a string or an array of strings');
         assert(typeof start === 'number' && typeof stop === 'number', 'start and stop must be numbers');
         assert(typeof uid === 'number', 'uid must be a number');
         assert(typeof reverse === 'boolean', 'reverse must be a boolean');
@@ -112,7 +112,7 @@ module.exports = function (Topics) {
     async function addEventStartEnd(postData, set, reverse, topicData) {
         // Assert function parameter types in the body
         assert(Array.isArray(postData), 'postData must be an array');
-        assert(typeof set === 'string', 'set must be a string');
+        assert(typeof set === 'string' || Array.isArray(set), 'set must be a string or an array of strings');
         assert(typeof reverse === 'boolean', 'reverse must be a boolean');
         assert(typeof topicData === 'object' && topicData !== null, 'topicData must be an object');
         if (!postData.length) {
@@ -474,7 +474,7 @@ module.exports = function (Topics) {
         assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         assert(typeof field === 'string', 'field must be a string');
         assert(typeof by === 'number', 'by must be a number');
-        assert(typeof set === 'string', 'set must be a string');
+        assert(typeof set === 'string' || Array.isArray(set), 'set must be a string or an array of strings');
         const value = await db.incrObjectFieldBy(`topic:${tid}`, field, by);
         await db[Array.isArray(set) ? 'sortedSetsAdd' : 'sortedSetAdd'](set, value, tid);
     }
