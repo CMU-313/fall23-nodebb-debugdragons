@@ -136,7 +136,7 @@ describe('Topic\'s', () => {
             });
         });
 
-        it('should create a new anomyous topic', (done) => {
+        it('should create a new anonymous topic', (done) => {
             topics.post({
                 uid: topic.userId,
                 title: topic.title,
