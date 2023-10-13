@@ -1,8 +1,3 @@
-Requirements
-Create a new file UserGuide.md in the root directory of your repository
-In this file, provide a detailed outline of how to use and user test your new feature(s)
-You should also provide a link/description of where your added automated tests can be found, along with a description of what is being tested and why you believe the tests are sufficient for covering the changes that you have made
-
 # User Guide
 
 ## Table of Contents
@@ -11,9 +6,7 @@ Endorsing Answers
 Question Pinning
 Instructor Commented
 Anonymous Posting
-Unread Topics
-
-(Add other features that are missed)
+Unread Topics Highlight
 
 ## Endorsing Answers
 
@@ -42,8 +35,7 @@ Additional test were added to the following file for the feature:
     - Lines 617 - 620: student upvote privilege denied
     - Lines 622 - 625: student without preset accounttype upvote privilege denied
 
-These additional test are sufficient for covering the changes we made for the feature because
-the main logic behind allowing a user to endorse depends on if their accounttype is **instructor** or if they are in the **Admin/Moderators** groups. These tests essentially check that if the privilege is granted or not when the accounttype is **instructor** or **student**, and checks if being an **Admin** or **Moderator** is also granted the privilege.
+These additional test are sufficient for covering the changes we made for the feature because the main logic behind allowing a user to endorse depends on if their accounttype is **instructor** or if they are in the **Admin/Moderators** groups. These tests essentially check that if the privilege is granted or not when the accounttype is **instructor** or **student**, and checks if being an **Admin** or **Moderator** is also granted the privilege.
 
 ## Question Pinning
 
@@ -68,26 +60,25 @@ We are extending admin one admin privilege to instructors, which is being able t
 
 Additional test were added to the following file for the feature:
 1. [test/topics.js](fall23-nodebb-debugdragons/test/topics.js)
-    - Lines 697 - 700: should show isInstructor privilege for instructor is true
-    - Lines 702 - 705: should show isInstructor privilege for instructor is false
-    - Lines 707 - 710: should show editable privilege for instructor is true
-    - Lines 712 - 716: should show editable privilege for instructor is false
-    - Lines 717 - 720: should show isOwner privilege for owner of topic is true
-    - Lines 722 - 725: should show isOwner privilege for owner of topic is false
-    - Lines 727 - 731: should pin topic for instructor
-    - Lines 733 - 737: should unpin topic for instructor
+    - Lines 721 - 724: should show isInstructor privilege for instructor is true
+    - Lines 726 - 729: should show isInstructor privilege for instructor is false
+    - Lines 731 - 734: should show editable privilege for instructor is true
+    - Lines 736 - 739: should show editable privilege for instructor is false
+    - Lines 741 - 744: should show isOwner privilege for owner of topic is true
+    - Lines 746 - 749: should show isOwner privilege for owner of topic is false
+    - Lines 751 - 755: should pin topic for instructor
+    - Lines 757 - 761: should unpin topic for instructor
 
 These additional tests are sufficient for covering the changes we made for the feature because this feature utilizes the privileges that are granted for each user for a given category/topic. Therefore, we checked depending on the account (i.e student/instructor or admin/mod/instructor) if privilege was either granted or not based.
 
 ## Instructor Commented
 
 ### How to Use Feature
-1. To use the Endorse feature, your account needs to meet one of the following:
+1. To use the Instructor Commented feature, your account needs to meet one of the following:
     - The account type must be **instructor**
 2. Go to a topic or post.
 3. Reply with any message.
-7. In the Topic Teasers, the replied topic will have the icon
-8. To unpin, repeat steps 2 - 4, but now the **Pin Topic** option will be **Unpin Topic**
+4. In the Topic Teasers, the replied topic will have an "i" icon indicating that an instructor has commented on that topic
 
 ### Automated Testing
 
@@ -95,17 +86,16 @@ Additional test was added to the following file for the feature:
 1. [test/topics.js](fall23-nodebb-debugdragons/test/topics.js)
     - Lines 331 - 335:  should change instructor count on reply
 
-This additional test are sufficient for covering the changes we made for the feature because
-this feature utilizes the functions implemented by other features and tested in them.
+This additional test is sufficient for covering the changes we made for the feature because this feature utilizes the functions implemented by other features and tested in them. This test essentially checks that the instructor count increases by 1 if there has been a reply. 
 
 ## Anonymous Posting
 
 ### How to use Feature
-Create a new topic
-Add a tag “anonymous”
-In the topic users are now anonymised
-Go to topic list
-In the list the avatar will be anonymous
+1. Create a new topic
+2. Add a tag "anonymous"
+3. In the topic, users are now anonymised
+4. Go to topics list
+5. In the list the avatar will be anonymous
 
 ### Automated Testing
 
@@ -113,15 +103,15 @@ Additional test was added to the following file for the feature:
 1. [test/topics.js](fall23-nodebb-debugdragons/test/topics.js)
 Lines 139-153: should create a new anonymous topic
 
-This additional test is sufficient for the new feature because that’s the functions altered are already covered by testing suite, and this is the only implemented functionality: marking anonymous state of the topic.
+This additional test is sufficient for the new feature because the functions altered are already covered by the testing suite, and this is the only implemented functionality: marking the anonymous state of a topic.
 
-## Unread highlight
+## Unread Topics Highlight
 
 ### How to Use Feature
-Mark any topic as unread
-In the topic teasers, the unread topic will be highlighted in yellow
+1. Mark any topic as unread
+2. In the topic teasers, the unread topic will be highlighted in yellow
 
 ### Automated Testing
 
-Unread feature is already  implemented by NodeBB and testing for it is in the test suite. Our implementation just retrieves the tested information into the frontend. 
+Unread feature is already implemented by NodeBB and testing for it is in the test suite. Our implementation just retrieves the tested information into the frontend and alters the display of unread topics to differentiate the posts from read topics to improve user experience.
 
