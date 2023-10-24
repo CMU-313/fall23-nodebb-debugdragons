@@ -150,7 +150,7 @@ privsTopics.filterUids = async function (privilege, tid, uids) {
         return [];
     }
     assert(typeof privilege === 'string', 'Expected privilege to be a string');
-    assert(typeof tid === 'number', 'Expected tid to be a number');
+    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or stirng');
     uids = _.uniq(uids);
     const topicData = await topics.getTopicFields(tid, ['tid', 'cid', 'deleted', 'scheduled']);
     const [disabled, allowedTo, isAdmins] = await Promise.all([
