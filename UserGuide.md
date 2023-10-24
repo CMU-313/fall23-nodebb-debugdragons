@@ -73,11 +73,13 @@ These additional tests are sufficient for covering the changes we made for the f
 
 ## Instructor Commented
 
+The Instructor Commented feature allows for students to easily identify which posts have been commented by an instructor so that they can see which posts have been answered correctly.
+
 ### How to Use Feature
 1. To use the Instructor Commented feature, your account needs to meet one of the following:
     - The account type must be **instructor**
 2. Go to a topic or post.
-3. Reply with any message.
+3. Reply with a message by clicking the reply button at the top right corner.
 4. In the Topic Teasers, the replied topic will have an "i" icon indicating that an instructor has commented on that topic
 
 ### Automated Testing
@@ -90,10 +92,12 @@ This additional test is sufficient for covering the changes we made for the feat
 
 ## Anonymous Posting
 
+The anonymous posting feature allows for students to freely post questions that they might be too scared or embarassed to ask if others can see their name. This feature will anonymise their username and profile so that they feel more comfortable when posting a topic and don't feel judged.
+
 ### How to use Feature
-1. Create a new topic
-2. Add a tag "anonymous"
-3. In the topic, users are now anonymised
+1. Create a new topic as a student
+2. Add a tag "anonymous" at the bottom before posting
+3. In the topic, users' usernames are now anonymised
 4. Go to topics list
 5. In the list the avatar will be anonymous
 
@@ -103,9 +107,11 @@ Additional test was added to the following file for the feature:
 1. [test/topics.js](fall23-nodebb-debugdragons/test/topics.js)
     - Lines 139-153: should create a new anonymous topic
 
-This additional test is sufficient for the new feature because the functions altered are already covered by the testing suite, and this is the only implemented functionality: marking the anonymous state of a topic.
+This additional test is sufficient for the new feature because the functions altered are already covered by the testing suite, and this is the only implemented functionality: marking the anonymous state of a topic. We can visually check locally whether or not the username and avatar have been anonymised.
 
 ## Unread Topics Highlight
+
+The unread topics highlight feature is a simple feature that eases a user's experience by highlighting topics that have not been read yet. This is a simple but effective feature as it is sometimes hard to navigate unread topics as the number of topics increase in the forum.
 
 ### How to Use Feature
 1. Mark any topic as unread
