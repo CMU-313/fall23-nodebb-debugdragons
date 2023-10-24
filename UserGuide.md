@@ -79,7 +79,7 @@ The Instructor Commented feature allows for students to easily identify which po
 1. To use the Instructor Commented feature, your account needs to meet one of the following:
     - The account type must be **instructor**
 2. Go to a topic or post.
-3. Reply with a message by clicking the reply button at the top right corner.
+3. Reply with a message by clicking the reply button at the top right corner or reply to a specific comment.
 4. In the Topic Teasers, the replied topic will have an "i" icon indicating that an instructor has commented on that topic
 
 ### Automated Testing
