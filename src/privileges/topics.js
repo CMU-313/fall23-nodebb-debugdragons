@@ -1,18 +1,15 @@
+const _ = require('lodash')
+const assert = require('assert')
 
-'use strict';
+const meta = require('../meta')
+const topics = require('../topics')
+const user = require('../user')
+const helpers = require('./helpers')
+const categories = require('../categories')
+const plugins = require('../plugins')
+const privsCategories = require('./categories')
 
-const _ = require('lodash');
-const assert = require('assert');
-
-const meta = require('../meta');
-const topics = require('../topics');
-const user = require('../user');
-const helpers = require('./helpers');
-const categories = require('../categories');
-const plugins = require('../plugins');
-const privsCategories = require('./categories');
-
-const privsTopics = module.exports;
+const privsTopics = module.exports
 
 /**
  * Gets topics by tid and uid
@@ -22,29 +19,29 @@ const privsTopics = module.exports;
  */
 privsTopics.get = async function (tid, uid) {
     // Assert function parameter types in the body
-    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or string');
-    assert(typeof uid === 'number', '[[error:no-privileges]]');
-    uid = parseInt(uid, 10);
+    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or string')
+    assert(typeof uid === 'number', '[[error:no-privileges]]')
+    uid = parseInt(uid, 10)
 
     const privs = [
         'topics:reply', 'topics:read', 'topics:schedule', 'topics:tag',
         'topics:delete', 'posts:edit', 'posts:history',
-        'posts:delete', 'posts:view_deleted', 'read', 'purge',
-    ];
-    const topicData = await topics.getTopicFields(tid, ['cid', 'uid', 'locked', 'deleted', 'scheduled']);
+        'posts:delete', 'posts:view_deleted', 'read', 'purge'
+    ]
+    const topicData = await topics.getTopicFields(tid, ['cid', 'uid', 'locked', 'deleted', 'scheduled'])
     const [userPrivileges, isAdministrator, isModerator, isInstructor, disabled] = await Promise.all([
         helpers.isAllowedTo(privs, uid, topicData.cid),
         user.isAdministrator(uid),
         user.isModerator(uid, topicData.cid),
         user.isInstructor(uid),
-        categories.getCategoryField(topicData.cid, 'disabled'),
-    ]);
-    const privData = _.zipObject(privs, userPrivileges);
-    const isOwner = uid > 0 && uid === topicData.uid;
-    const isAdminOrMod = isAdministrator || isModerator;
-    const editable = isAdminOrMod || isInstructor;
-    const deletable = (privData['topics:delete'] && (isOwner || isModerator)) || isAdministrator;
-    const mayReply = privsTopics.canViewDeletedScheduled(topicData, {}, false, privData['topics:schedule']);
+        categories.getCategoryField(topicData.cid, 'disabled')
+    ])
+    const privData = _.zipObject(privs, userPrivileges)
+    const isOwner = uid > 0 && uid === topicData.uid
+    const isAdminOrMod = isAdministrator || isModerator
+    const editable = isAdminOrMod || isInstructor
+    const deletable = (privData['topics:delete'] && (isOwner || isModerator)) || isAdministrator
+    const mayReply = privsTopics.canViewDeletedScheduled(topicData, {}, false, privData['topics:schedule'])
 
     const result = await plugins.hooks.fire('filter:privileges.topics.get', {
         'topics:reply': (privData['topics:reply'] && ((!topicData.locked && mayReply) || isModerator)) || isAdministrator,
@@ -59,21 +56,21 @@ privsTopics.get = async function (tid, uid) {
         read: privData.read || isAdministrator,
         purge: (privData.purge && (isOwner || isModerator)) || isAdministrator,
         view_thread_tools: editable || deletable,
-        editable: editable,
-        deletable: deletable,
+        editable,
+        deletable,
         view_deleted: isAdminOrMod || isOwner || privData['posts:view_deleted'],
         view_scheduled: privData['topics:schedule'] || isAdministrator,
-        isAdminOrMod: isAdminOrMod,
-        isInstructor: isInstructor,
-        isOwner: isOwner,
-        disabled: disabled,
-        tid: tid,
-        uid: uid,
-    });
+        isAdminOrMod,
+        isInstructor,
+        isOwner,
+        disabled,
+        tid,
+        uid
+    })
     // Assert function return types in the body
-    assert(typeof result === 'object', 'result should be an object');
-    return result;
-};
+    assert(typeof result === 'object', 'result should be an object')
+    return result
+}
 
 /**
  * Checks if user gets privilege to topic
@@ -84,15 +81,15 @@ privsTopics.get = async function (tid, uid) {
  */
 privsTopics.can = async function (privilege, tid, uid) {
     // Assert function parameter types in the body
-    assert(typeof privilege === 'string', 'Expected privilege to be a string');
-    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or string');
-    assert(typeof uid === 'number', '[[error:no-privileges]]');
-    const cid = await topics.getTopicField(tid, 'cid');
-    const canResult = await privsCategories.can(privilege, cid, uid);
+    assert(typeof privilege === 'string', 'Expected privilege to be a string')
+    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or string')
+    assert(typeof uid === 'number', '[[error:no-privileges]]')
+    const cid = await topics.getTopicField(tid, 'cid')
+    const canResult = await privsCategories.can(privilege, cid, uid)
     // Assert function return types in the body
-    assert(typeof canResult === 'boolean', 'result should be a boolean');
-    return canResult;
-};
+    assert(typeof canResult === 'boolean', 'result should be a boolean')
+    return canResult
+}
 
 /**
  * Filters tids
@@ -104,38 +101,38 @@ privsTopics.can = async function (privilege, tid, uid) {
 privsTopics.filterTids = async function (privilege, tids, uid) {
     // Assert function parameter types in the body
     if (!Array.isArray(tids) || !tids.length) {
-        return [];
+        return []
     }
-    assert(typeof privilege === 'string', 'Expected privilege to be a string');
-    assert(typeof uid === 'number', '[[error:no-privileges]]');
-    const topicsData = await topics.getTopicsFields(tids, ['tid', 'cid', 'deleted', 'scheduled']);
-    const cids = _.uniq(topicsData.map(topic => topic.cid));
-    const results = await privsCategories.getBase(privilege, cids, uid);
+    assert(typeof privilege === 'string', 'Expected privilege to be a string')
+    assert(typeof uid === 'number', '[[error:no-privileges]]')
+    const topicsData = await topics.getTopicsFields(tids, ['tid', 'cid', 'deleted', 'scheduled'])
+    const cids = _.uniq(topicsData.map(topic => topic.cid))
+    const results = await privsCategories.getBase(privilege, cids, uid)
 
     const allowedCids = cids.filter((cid, index) => (
         !results.categories[index].disabled &&
         (results.allowedTo[index] || results.isAdmin)
-    ));
+    ))
 
-    const cidsSet = new Set(allowedCids);
-    const canViewDeleted = _.zipObject(cids, results.view_deleted);
-    const canViewScheduled = _.zipObject(cids, results.view_scheduled);
+    const cidsSet = new Set(allowedCids)
+    const canViewDeleted = _.zipObject(cids, results.view_deleted)
+    const canViewScheduled = _.zipObject(cids, results.view_scheduled)
 
     tids = topicsData.filter(t => (
         cidsSet.has(t.cid) &&
         (results.isAdmin || privsTopics.canViewDeletedScheduled(t, {}, canViewDeleted[t.cid], canViewScheduled[t.cid]))
-    )).map(t => t.tid);
+    )).map(t => t.tid)
 
     const data = await plugins.hooks.fire('filter:privileges.topics.filter', {
-        privilege: privilege,
-        uid: uid,
-        tids: tids,
-    });
-    const tidsResult = data ? data.tids : [];
+        privilege,
+        uid,
+        tids
+    })
+    const tidsResult = data ? data.tids : []
     // Assert function return types in the body
-    assert(typeof tidsResult === 'object', 'Expected result to be an object');
-    return tidsResult;
-};
+    assert(typeof tidsResult === 'object', 'Expected result to be an object')
+    return tidsResult
+}
 
 /**
  * Filters uids
@@ -147,28 +144,28 @@ privsTopics.filterTids = async function (privilege, tids, uid) {
 privsTopics.filterUids = async function (privilege, tid, uids) {
     // Assert function parameter types in the body
     if (!Array.isArray(uids) || !uids.length) {
-        return [];
+        return []
     }
-    assert(typeof privilege === 'string', 'Expected privilege to be a string');
-    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or stirng');
-    uids = _.uniq(uids);
-    const topicData = await topics.getTopicFields(tid, ['tid', 'cid', 'deleted', 'scheduled']);
+    assert(typeof privilege === 'string', 'Expected privilege to be a string')
+    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or stirng')
+    uids = _.uniq(uids)
+    const topicData = await topics.getTopicFields(tid, ['tid', 'cid', 'deleted', 'scheduled'])
     const [disabled, allowedTo, isAdmins] = await Promise.all([
         categories.getCategoryField(topicData.cid, 'disabled'),
         helpers.isUsersAllowedTo(privilege, uids, topicData.cid),
-        user.isAdministrator(uids),
-    ]);
+        user.isAdministrator(uids)
+    ])
 
     if (topicData.scheduled) {
-        const canViewScheduled = await helpers.isUsersAllowedTo('topics:schedule', uids, topicData.cid);
-        uids = uids.filter((uid, index) => canViewScheduled[index]);
+        const canViewScheduled = await helpers.isUsersAllowedTo('topics:schedule', uids, topicData.cid)
+        uids = uids.filter((uid, index) => canViewScheduled[index])
     }
     const uidsResult = uids.filter((uid, index) => !disabled &&
-        ((allowedTo[index] && (topicData.scheduled || !topicData.deleted)) || isAdmins[index]));
+        ((allowedTo[index] && (topicData.scheduled || !topicData.deleted)) || isAdmins[index]))
     // Assert function return types in the body
-    assert(typeof uidsResult === 'object', 'Expected result to be an object');
-    return uidsResult;
-};
+    assert(typeof uidsResult === 'object', 'Expected result to be an object')
+    return uidsResult
+}
 
 /**
  * Checks if topic is purgable
@@ -178,20 +175,20 @@ privsTopics.filterUids = async function (privilege, tid, uids) {
  */
 privsTopics.canPurge = async function (tid, uid) {
     // Assert function parameter types in the body
-    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or string');
-    assert(typeof uid === 'number', 'Expected uid to be a number');
-    const cid = await topics.getTopicField(tid, 'cid');
+    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or string')
+    assert(typeof uid === 'number', 'Expected uid to be a number')
+    const cid = await topics.getTopicField(tid, 'cid')
     const [purge, owner, isAdmin, isModerator] = await Promise.all([
         privsCategories.isUserAllowedTo('purge', cid, uid),
         topics.isOwner(tid, uid),
         user.isAdministrator(uid),
-        user.isModerator(uid, cid),
-    ]);
-    const result = (purge && (owner || isModerator)) || isAdmin;
+        user.isModerator(uid, cid)
+    ])
+    const result = (purge && (owner || isModerator)) || isAdmin
     // Assert function return types in the body
-    assert(typeof result === 'boolean', 'Expected result to be a boolean');
-    return result;
-};
+    assert(typeof result === 'boolean', 'Expected result to be a boolean')
+    return result
+}
 
 /**
  * Checks if topic is deletable
@@ -201,34 +198,34 @@ privsTopics.canPurge = async function (tid, uid) {
  */
 privsTopics.canDelete = async function (tid, uid) {
     // Assert function parameter types in the body
-    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or string');
-    assert(typeof uid === 'number', 'Expected uid to be a number');
-    const topicData = await topics.getTopicFields(tid, ['uid', 'cid', 'postcount', 'deleterUid']);
+    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or string')
+    assert(typeof uid === 'number', 'Expected uid to be a number')
+    const topicData = await topics.getTopicFields(tid, ['uid', 'cid', 'postcount', 'deleterUid'])
     const [isModerator, isAdministrator, isOwner, allowedTo] = await Promise.all([
         user.isModerator(uid, topicData.cid),
         user.isAdministrator(uid),
         topics.isOwner(tid, uid),
-        helpers.isAllowedTo('topics:delete', uid, [topicData.cid]),
-    ]);
+        helpers.isAllowedTo('topics:delete', uid, [topicData.cid])
+    ])
 
     if (isAdministrator) {
-        return true;
+        return true
     }
 
-    const { preventTopicDeleteAfterReplies } = meta.config;
+    const { preventTopicDeleteAfterReplies } = meta.config
     if (!isModerator && preventTopicDeleteAfterReplies && (topicData.postcount - 1) >= preventTopicDeleteAfterReplies) {
-        const langKey = preventTopicDeleteAfterReplies > 1 ?
-            `[[error:cant-delete-topic-has-replies, ${meta.config.preventTopicDeleteAfterReplies}]]` :
-            '[[error:cant-delete-topic-has-reply]]';
-        throw new Error(langKey);
+        const langKey = preventTopicDeleteAfterReplies > 1
+            ? `[[error:cant-delete-topic-has-replies, ${meta.config.preventTopicDeleteAfterReplies}]]`
+            : '[[error:cant-delete-topic-has-reply]]'
+        throw new Error(langKey)
     }
 
-    const { deleterUid } = topicData;
-    const result = allowedTo[0] && ((isOwner && (deleterUid === 0 || deleterUid === topicData.uid)) || isModerator);
+    const { deleterUid } = topicData
+    const result = allowedTo[0] && ((isOwner && (deleterUid === 0 || deleterUid === topicData.uid)) || isModerator)
     // Assert function return types in the body
-    assert(typeof result === 'boolean', 'Expected result to be a boolean');
-    return result;
-};
+    assert(typeof result === 'boolean', 'Expected result to be a boolean')
+    return result
+}
 
 /**
  * Checks if topic can be edited
@@ -238,13 +235,13 @@ privsTopics.canDelete = async function (tid, uid) {
  */
 privsTopics.canEdit = async function (tid, uid) {
     // Assert function parameter types in the body
-    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or string');
-    assert(typeof uid === 'number', 'Expected uid to be a number');
-    const result = await privsTopics.isOwnerOrAdminOrMod(tid, uid);
+    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or string')
+    assert(typeof uid === 'number', 'Expected uid to be a number')
+    const result = await privsTopics.isOwnerOrAdminOrMod(tid, uid)
     // Assert function return types in the body
-    assert(typeof result === 'boolean', 'Expected result to be a boolean');
-    return result;
-};
+    assert(typeof result === 'boolean', 'Expected result to be a boolean')
+    return result
+}
 
 /**
  * Checks if user is owner, admin, or mod of topic
@@ -254,17 +251,17 @@ privsTopics.canEdit = async function (tid, uid) {
  */
 privsTopics.isOwnerOrAdminOrMod = async function (tid, uid) {
     // Assert function parameter types in the body
-    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or string');
-    assert(typeof uid === 'number', 'Expected uid to be a number');
+    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or string')
+    assert(typeof uid === 'number', 'Expected uid to be a number')
     const [isOwner, isAdminOrMod] = await Promise.all([
         topics.isOwner(tid, uid),
-        privsTopics.isAdminOrMod(tid, uid),
-    ]);
-    const result = isOwner || isAdminOrMod;
+        privsTopics.isAdminOrMod(tid, uid)
+    ])
+    const result = isOwner || isAdminOrMod
     // Assert function return types in the body
-    assert(typeof result === 'boolean', 'Expected result to be a boolean');
-    return result;
-};
+    assert(typeof result === 'boolean', 'Expected result to be a boolean')
+    return result
+}
 
 /**
  * Checks if user is admin, or mod of topic
@@ -274,17 +271,17 @@ privsTopics.isOwnerOrAdminOrMod = async function (tid, uid) {
  */
 privsTopics.isAdminOrMod = async function (tid, uid) {
     // Assert function parameter types in the body
-    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or string');
-    assert(typeof uid === 'number', 'Expected uid to be a number');
+    assert(typeof tid === 'number' || typeof tid === 'string', 'Expected tid to be a number or string')
+    assert(typeof uid === 'number', 'Expected uid to be a number')
     if (parseInt(uid, 10) <= 0) {
-        return false;
+        return false
     }
-    const cid = await topics.getTopicField(tid, 'cid');
-    const result = await privsCategories.isAdminOrMod(cid, uid);
+    const cid = await topics.getTopicField(tid, 'cid')
+    const result = await privsCategories.isAdminOrMod(cid, uid)
     // Assert function return types in the body
-    assert(typeof result === 'boolean', 'Expected result to be a boolean');
-    return result;
-};
+    assert(typeof result === 'boolean', 'Expected result to be a boolean')
+    return result
+}
 
 /**
  * Function to check if a user has privileges to view deleted or scheduled topics
@@ -297,30 +294,30 @@ privsTopics.isAdminOrMod = async function (tid, uid) {
 privsTopics.canViewDeletedScheduled = function (topic, privileges = {}, viewDeleted = false, viewScheduled = false) {
     // Assert function parameter types in the body
     if (typeof topic !== 'object') {
-        return false;
+        return false
     }
     if (typeof privileges !== 'object') {
-        return false;
+        return false
     }
 
     if (typeof viewDeleted !== 'boolean') {
-        return false;
+        return false
     }
     if (typeof viewScheduled !== 'boolean') {
-        return false;
+        return false
     }
     if (!topic) {
-        return false;
+        return false
     }
-    const { deleted = false, scheduled = false } = topic;
-    const { view_deleted = viewDeleted, view_scheduled = viewScheduled } = privileges;
+    const { deleted = false, scheduled = false } = topic
+    const { view_deleted = viewDeleted, view_scheduled = viewScheduled } = privileges
 
     // conceptually exclusive, scheduled topics deemed to be not deleted (they can only be purged)
     if (scheduled) {
-        return view_scheduled;
+        return view_scheduled
     } else if (deleted) {
-        return view_deleted;
+        return view_deleted
     }
 
-    return true;
-};
+    return true
+}

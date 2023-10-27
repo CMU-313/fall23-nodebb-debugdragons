@@ -1,9 +1,9 @@
-'use strict';
+'use strict'
 
 define('settings/key', function () {
-    let helper = null;
-    let lastKey = null;
-    let oldKey = null;
+    let helper = null
+    let lastKey = null
+    let oldKey = null
     const keyMap = Object.freeze({
         0: '',
         8: 'Backspace',
@@ -24,15 +24,15 @@ define('settings/key', function () {
         219: '[',
         220: '\\',
         221: ']',
-    });
+    })
 
-    function Key() {
-        this.c = false;
-        this.a = false;
-        this.s = false;
-        this.m = false;
-        this.code = 0;
-        this.char = '';
+    function Key () {
+        this.c = false
+        this.a = false
+        this.s = false
+        this.m = false
+        this.code = 0
+        this.char = ''
     }
 
     /**
@@ -40,13 +40,13 @@ define('settings/key', function () {
      @param event The event to inspect.
      @returns Key | null The Key-Object the focused element should be set to.
      */
-    function getKey(event) {
+    function getKey (event) {
         const anyModChange = (
             event.ctrlKey !== lastKey.c ||
             event.altKey !== lastKey.a ||
             event.shiftKey !== lastKey.s ||
             event.metaKey !== lastKey.m
-        );
+        )
         const modChange = (
             event.ctrlKey +
             event.altKey +
@@ -56,25 +56,25 @@ define('settings/key', function () {
             lastKey.a -
             lastKey.s -
             lastKey.m
-        );
-        const key = new Key();
-        key.c = event.ctrlKey;
-        key.a = event.altKey;
-        key.s = event.shiftKey;
-        key.m = event.metaKey;
-        lastKey = key;
+        )
+        const key = new Key()
+        key.c = event.ctrlKey
+        key.a = event.altKey
+        key.s = event.shiftKey
+        key.m = event.metaKey
+        lastKey = key
         if (anyModChange) {
             if (modChange < 0) {
-                return null;
+                return null
             }
-            key.code = oldKey.code;
-            key.char = oldKey.char;
+            key.code = oldKey.code
+            key.char = oldKey.char
         } else {
-            key.code = event.which;
-            key.char = convertKeyCodeToChar(key.code);
+            key.code = event.which
+            key.char = convertKeyCodeToChar(key.code)
         }
-        oldKey = key;
-        return key;
+        oldKey = key
+        return key
     }
 
     /**
@@ -82,16 +82,16 @@ define('settings/key', function () {
      @param code The key-code.
      @returns String Representation of the given key-code.
      */
-    function convertKeyCodeToChar(code) {
-        code = +code;
+    function convertKeyCodeToChar (code) {
+        code = +code
         if (code === 0) {
-            return '';
+            return ''
         } else if (code >= 48 && code <= 90) {
-            return String.fromCharCode(code).toUpperCase();
+            return String.fromCharCode(code).toUpperCase()
         } else if (code >= 112 && code <= 123) {
-            return 'F' + (code - 111);
+            return 'F' + (code - 111)
         }
-        return keyMap[code] || ('#' + code);
+        return keyMap[code] || ('#' + code)
     }
 
     /**
@@ -102,41 +102,41 @@ define('settings/key', function () {
      @param separator The separator between modification-names and key-char.
      @returns String The string to identify the given key-object the given way.
      */
-    function getKeyString(key, human, short, separator) {
-        let str = '';
+    function getKeyString (key, human, short, separator) {
+        let str = ''
         if (!(key instanceof Key)) {
-            return str;
+            return str
         }
         if (!key.char) {
             if (human) {
-                return 'Enter a key';
+                return 'Enter a key'
             }
-            return '';
+            return ''
         }
         if (!separator || /CtrlAShifMea#/.test(separator)) {
-            separator = human ? ' + ' : '+';
+            separator = human ? ' + ' : '+'
         }
         if (key.c) {
-            str += (short ? 'C' : 'Ctrl') + separator;
+            str += (short ? 'C' : 'Ctrl') + separator
         }
         if (key.a) {
-            str += (short ? 'A' : 'Alt') + separator;
+            str += (short ? 'A' : 'Alt') + separator
         }
         if (key.s) {
-            str += (short ? 'S' : 'Shift') + separator;
+            str += (short ? 'S' : 'Shift') + separator
         }
         if (key.m) {
-            str += (short ? 'M' : 'Meta') + separator;
+            str += (short ? 'M' : 'Meta') + separator
         }
 
-        let out;
+        let out
         if (human) {
-            out = key.char;
+            out = key.char
         } else if (key.code) {
-            out = '#' + key.code || '';
+            out = '#' + key.code || ''
         }
 
-        return str + out;
+        return str + out
     }
 
     /**
@@ -144,94 +144,93 @@ define('settings/key', function () {
      @param str The string to parse.
      @returns Key The Key-Object that got identified by the given string.
      */
-    function getKeyFromString(str) {
+    function getKeyFromString (str) {
         if (str instanceof Key) {
-            return str;
+            return str
         }
-        const key = new Key();
-        const sep = /([^CtrlAShifMea#\d]+)(?:#|\d)/.exec(str);
-        const parts = sep != null ? str.split(sep[1]) : [str];
+        const key = new Key()
+        const sep = /([^CtrlAShifMea#\d]+)(?:#|\d)/.exec(str)
+        const parts = sep != null ? str.split(sep[1]) : [str]
         for (let i = 0; i < parts.length; i += 1) {
-            const part = parts[i];
+            const part = parts[i]
             switch (part) {
             case 'C':
             case 'Ctrl':
-                key.c = true;
-                break;
+                key.c = true
+                break
             case 'A':
             case 'Alt':
-                key.a = true;
-                break;
+                key.a = true
+                break
             case 'S':
             case 'Shift':
-                key.s = true;
-                break;
+                key.s = true
+                break
             case 'M':
             case 'Meta':
-                key.m = true;
-                break;
+                key.m = true
+                break
             default: {
-                const num = /\d+/.exec(part);
+                const num = /\d+/.exec(part)
                 if (num != null) {
-                    key.code = num[0];
+                    key.code = num[0]
                 }
-                key.char = convertKeyCodeToChar(key.code);
+                key.char = convertKeyCodeToChar(key.code)
             }
             }
         }
-        return key;
+        return key
     }
-
 
     const SettingsKey = {
         types: ['key'],
         use: function () {
-            helper = this.helper;
+            helper = this.helper
         },
         init: function (element) {
             element.focus(function () {
-                oldKey = element.data('keyData') || new Key();
-                lastKey = new Key();
+                oldKey = element.data('keyData') || new Key()
+                lastKey = new Key()
             }).keydown(function (event) {
-                event.preventDefault();
-                handleEvent(element, event);
+                event.preventDefault()
+                handleEvent(element, event)
             }).keyup(function (event) {
-                handleEvent(element, event);
-            });
-            return element;
+                handleEvent(element, event)
+            })
+            return element
         },
         set: function (element, value) {
-            const key = getKeyFromString(value || '');
-            element.data('keyData', key);
+            const key = getKeyFromString(value || '')
+            element.data('keyData', key)
             if (key.code) {
-                element.removeClass('alert-danger');
+                element.removeClass('alert-danger')
             } else {
-                element.addClass('alert-danger');
+                element.addClass('alert-danger')
             }
-            element.val(getKeyString(key, true, false, ' + '));
+            element.val(getKeyString(key, true, false, ' + '))
         },
         get: function (element, trim, empty) {
-            const key = element.data('keyData');
-            const separator = element.data('split') || element.data('separator') || '+';
-            const short = !helper.isFalse(element.data('short'));
+            const key = element.data('keyData')
+            const separator = element.data('split') || element.data('separator') || '+'
+            const short = !helper.isFalse(element.data('short'))
             if (trim) {
                 if (empty || (key != null && key.char)) {
-                    return getKeyString(key, false, short, separator);
+                    return getKeyString(key, false, short, separator)
                 }
             } else if (empty || (key != null && key.code)) {
-                return key;
+                return key
             }
         },
-    };
+    }
 
-    function handleEvent(element, event) {
-        event = event || window.event;
-        event.which = event.which || event.keyCode || event.key;
-        const key = getKey(event);
+    function handleEvent (element, event) {
+        event = event || window.event
+        event.which = event.which || event.keyCode || event.key
+        const key = getKey(event)
         if (key != null) {
-            SettingsKey.set(element, key);
+            SettingsKey.set(element, key)
         }
     }
 
-    return SettingsKey;
-});
+    return SettingsKey
+})

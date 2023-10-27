@@ -1,10 +1,8 @@
 /* eslint-disable no-await-in-loop */
 
-'use strict';
-
-const privileges = require('../../privileges');
-const groups = require('../../groups');
-const db = require('../../database');
+const privileges = require('../../privileges')
+const groups = require('../../groups')
+const db = require('../../database')
 
 module.exports = {
     name: 'Give mods explicit privileges',
@@ -22,12 +20,12 @@ module.exports = {
             'posts:delete',
             'posts:upvote',
             'posts:downvote',
-            'topics:delete',
-        ];
+            'topics:delete'
+        ]
         const modPrivileges = defaultPrivileges.concat([
             'posts:view_deleted',
-            'purge',
-        ]);
+            'purge'
+        ])
 
         const globalModPrivs = [
             'groups:chat',
@@ -41,23 +39,23 @@ module.exports = {
             'groups:view:users',
             'groups:view:tags',
             'groups:view:groups',
-            'groups:local:login',
-        ];
+            'groups:local:login'
+        ]
 
-        const cids = await db.getSortedSetRevRange('categories:cid', 0, -1);
+        const cids = await db.getSortedSetRevRange('categories:cid', 0, -1)
         for (const cid of cids) {
-            await givePrivsToModerators(cid, '');
-            await givePrivsToModerators(cid, 'groups:');
-            await privileges.categories.give(modPrivileges.map(p => `groups:${p}`), cid, ['Global Moderators']);
+            await givePrivsToModerators(cid, '')
+            await givePrivsToModerators(cid, 'groups:')
+            await privileges.categories.give(modPrivileges.map(p => `groups:${p}`), cid, ['Global Moderators'])
         }
-        await privileges.global.give(globalModPrivs, 'Global Moderators');
+        await privileges.global.give(globalModPrivs, 'Global Moderators')
 
-        async function givePrivsToModerators(cid, groupPrefix) {
-            const privGroups = modPrivileges.map(priv => `cid:${cid}:privileges:${groupPrefix}${priv}`);
-            const members = await db.getSortedSetRevRange(`group:cid:${cid}:privileges:${groupPrefix}moderate:members`, 0, -1);
+        async function givePrivsToModerators (cid, groupPrefix) {
+            const privGroups = modPrivileges.map(priv => `cid:${cid}:privileges:${groupPrefix}${priv}`)
+            const members = await db.getSortedSetRevRange(`group:cid:${cid}:privileges:${groupPrefix}moderate:members`, 0, -1)
             for (const member of members) {
-                await groups.join(privGroups, member);
+                await groups.join(privGroups, member)
             }
         }
-    },
-};
+    }
+}

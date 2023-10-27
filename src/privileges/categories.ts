@@ -1,11 +1,11 @@
-import * as _ from 'lodash';
+import * as _ from 'lodash'
 
-import categories from '../categories';
-import user from '../user';
-import groups from '../groups';
-import helpers from './helpers';
-import plugins from '../plugins';
-import utils from '../utils';
+import categories from '../categories'
+import user from '../user'
+import groups from '../groups'
+import helpers from './helpers'
+import plugins from '../plugins'
+import utils from '../utils'
 
 interface PrivsCategories {
     _coreSize: number;
@@ -90,8 +90,8 @@ const _privilegeMap = new Map<string, PrivilegeEntry>([
     ['topics:delete', { label: '[[admin/manage/privileges:delete-topics]]' }],
     ['posts:view_deleted', { label: '[[admin/manage/privileges:view_deleted]]' }],
     ['purge', { label: '[[admin/manage/privileges:purge]]' }],
-    ['moderate', { label: '[[admin/manage/privileges:moderate]]' }],
-]);
+    ['moderate', { label: '[[admin/manage/privileges:moderate]]' }]
+])
 
 const privsCategories: PrivsCategories = {
     _coreSize: 0,
@@ -107,25 +107,25 @@ const privsCategories: PrivsCategories = {
             this.getUserPrivilegeList(),
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            this.getGroupPrivilegeList(),
-        ]);
-        return user.concat(group);
+            this.getGroupPrivilegeList()
+        ])
+        return user.concat(group)
     },
 
     init: async function (this: PrivsCategories): Promise<void> {
-        this._coreSize = _privilegeMap.size;
+        this._coreSize = _privilegeMap.size
         await plugins.hooks.fire('static:privileges.categories.init', {
-            privileges: _privilegeMap,
-        });
+            privileges: _privilegeMap
+        })
     },
 
     // Method used in admin/category controller to show all users/groups with privs in that given cid
     list: async function (this: PrivsCategories, cid: number): Promise<ListPayload> {
-        let labels = Array.from(_privilegeMap.values()).map(data => data.label);
+        let labels = Array.from(_privilegeMap.values()).map(data => data.label)
         labels = await utils.promiseParallel({
             users: plugins.hooks.fire('filter:privileges.list_human', labels.slice()),
-            groups: plugins.hooks.fire('filter:privileges.groups.list_human', labels.slice()),
-        });
+            groups: plugins.hooks.fire('filter:privileges.groups.list_human', labels.slice())
+        })
 
         const keys = await utils.promiseParallel({
             // The next line calls a function in a module that has not been updated to TS yet
@@ -133,58 +133,57 @@ const privsCategories: PrivsCategories = {
             users: this.getUserPrivilegeList(),
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            groups: this.getGroupPrivilegeList(),
-        });
+            groups: this.getGroupPrivilegeList()
+        })
 
         const payload: Partial<ListPayload> = await utils.promiseParallel({
             labels,
             users: helpers.getUserPrivileges(cid, keys.users),
-            groups: helpers.getGroupPrivileges(cid, keys.groups),
-        });
-        payload.keys = keys;
+            groups: helpers.getGroupPrivileges(cid, keys.groups)
+        })
+        payload.keys = keys
 
-        payload.columnCountUserOther = payload.labels.users.length - this._coreSize;
-        payload.columnCountGroupOther = payload.labels.groups.length - this._coreSize;
+        payload.columnCountUserOther = payload.labels.users.length - this._coreSize
+        payload.columnCountGroupOther = payload.labels.groups.length - this._coreSize
 
-        return payload as ListPayload;
+        return payload as ListPayload
     },
-
 
     get: async function (cid: number, uid: number): Promise<PrivilegeData> {
         const privs: string[] = [
             'topics:create', 'topics:read', 'topics:schedule',
-            'topics:tag', 'read', 'posts:view_deleted',
-        ];
+            'topics:tag', 'read', 'posts:view_deleted'
+        ]
 
         const [userPrivileges, isAdministrator, isModerator]: [boolean[], boolean, boolean] = await Promise.all([
             helpers.isAllowedTo(privs, uid, cid) as boolean[],
             user.isAdministrator(uid) as boolean,
-            user.isModerator(uid, cid) as boolean,
-        ]);
+            user.isModerator(uid, cid) as boolean
+        ])
 
-        const combined: boolean[] = userPrivileges.map(allowed => allowed || isAdministrator);
-        const privData: Record<string, boolean> = _.zipObject(privs, combined);
-        const isAdminOrMod: boolean = isAdministrator || isModerator;
+        const combined: boolean[] = userPrivileges.map(allowed => allowed || isAdministrator)
+        const privData: Record<string, boolean> = _.zipObject(privs, combined)
+        const isAdminOrMod: boolean = isAdministrator || isModerator
 
         return await plugins.hooks.fire('filter:privileges.categories.get', {
             ...privData,
-            cid: cid,
-            uid: uid,
+            cid,
+            uid,
             editable: isAdminOrMod,
             view_deleted: isAdminOrMod || privData['posts:view_deleted'],
-            isAdminOrMod: isAdminOrMod,
-        }) as PrivilegeData;
+            isAdminOrMod
+        }) as PrivilegeData
     },
 
     isAdminOrMod: async function (this: PrivsCategories, cid: number, uid: string): Promise<boolean> {
         if (parseInt(uid, 10) <= 0) {
-            return false;
+            return false
         }
         const [isAdmin, isMod]: [boolean, boolean] = await Promise.all([
             user.isAdministrator(uid) as boolean,
-            user.isModerator(uid, cid) as boolean,
-        ]);
-        return isAdmin || isMod;
+            user.isModerator(uid, cid) as boolean
+        ])
+        return isAdmin || isMod
     },
 
     isUserAllowedTo: async function (
@@ -193,26 +192,26 @@ const privsCategories: PrivsCategories = {
         uid: number
     ): Promise<boolean | boolean[]> {
         if ((Array.isArray(privilege) && !privilege.length) || (Array.isArray(cid) && !cid.length)) {
-            return [];
+            return []
         }
         if (!cid) {
-            return false;
+            return false
         }
         const results: Promise<boolean | boolean[]> = await helpers.isAllowedTo(
             privilege,
             uid,
             Array.isArray(cid) ? cid : [cid]
-        ) as Promise<boolean | boolean[]>;
+        ) as Promise<boolean | boolean[]>
 
         if (Array.isArray(results) && results.length) {
-            return Array.isArray(cid) ? results : results[0] as boolean | boolean[];
+            return Array.isArray(cid) ? results : results[0] as boolean | boolean[]
         }
-        return false;
+        return false
     },
 
     can: async function (privilege: string, cid: string | number, uid: string | number): Promise<boolean> {
         if (!cid) {
-            return false;
+            return false
         }
         const [disabled, isAdmin, isAllowed]: [boolean, boolean, boolean] = await Promise.all([
             // The next line calls a function in a module that has not been updated to TS yet
@@ -221,17 +220,17 @@ const privsCategories: PrivsCategories = {
             user.isAdministrator(uid) as boolean,
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            this.isUserAllowedTo(privilege, cid, uid) as boolean,
-        ]);
+            this.isUserAllowedTo(privilege, cid, uid) as boolean
+        ])
 
         // For Endorse Answers Only.
-        let isInstructor;
+        let isInstructor
         if (privilege === 'posts:upvote') {
-            isInstructor = await user.isInstructor(uid);
-            return !disabled && (isInstructor || isAdmin) as boolean;
+            isInstructor = await user.isInstructor(uid)
+            return !disabled && (isInstructor || isAdmin) as boolean
         }
 
-        return !disabled && (isAllowed || isAdmin);
+        return !disabled && (isAllowed || isAdmin)
     },
 
     filterCids: async function (
@@ -240,21 +239,21 @@ const privsCategories: PrivsCategories = {
         uid: number
     ): Promise<number[]> {
         if (!Array.isArray(cids) || !cids.length) {
-            return [];
+            return []
         }
 
-        cids = _.uniq(cids);
+        cids = _.uniq(cids)
         const [categoryData, allowedTo, isAdmin]:
             [Array<{ disabled: boolean }>, boolean[], boolean] = await Promise.all([
             // The next line calls a function in a module that has not been updated to TS yet
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             categories.getCategoriesFields(cids, ['disabled']) as Array<{ disabled: boolean }>,
             helpers.isAllowedTo(privilege, uid, cids) as boolean[],
-            user.isAdministrator(uid) as boolean,
-            ]);
+            user.isAdministrator(uid) as boolean
+            ])
         return cids.filter(
             (cid, index) => !!cid && !categoryData[index].disabled && (allowedTo[index] || isAdmin)
-        );
+        )
     },
 
     getBase: async function (privilege: string, cids: number[], uid: number): Promise<BasePayload> {
@@ -265,8 +264,8 @@ const privsCategories: PrivsCategories = {
             allowedTo: helpers.isAllowedTo(privilege, uid, cids) as boolean[],
             view_deleted: helpers.isAllowedTo('posts:view_deleted', uid, cids) as boolean[],
             view_scheduled: helpers.isAllowedTo('topics:schedule', uid, cids) as boolean[],
-            isAdmin: user.isAdministrator(uid) as boolean,
-        });
+            isAdmin: user.isAdministrator(uid) as boolean
+        })
     },
 
     filterUids: async function (
@@ -275,48 +274,48 @@ const privsCategories: PrivsCategories = {
         uids: number[]
     ): Promise<number[]> {
         if (!uids.length) {
-            return [];
+            return []
         }
 
-        uids = _.uniq(uids);
+        uids = _.uniq(uids)
 
         const [allowedTo, isAdmins]: [boolean, boolean[]] = await Promise.all([
             helpers.isUsersAllowedTo(privilege, uids, cid) as boolean,
-            user.isAdministrator(uids) as boolean[],
-        ]);
-        return uids.filter((uid, index) => allowedTo[index] || isAdmins[index]);
+            user.isAdministrator(uids) as boolean[]
+        ])
+        return uids.filter((uid, index) => allowedTo[index] || isAdmins[index])
     },
 
-    give(privileges, cid, members, callback) {
+    give (privileges, cid, members, callback) {
         helpers
             .giveOrRescind(groups.join, privileges, cid, members)
             .then(() => plugins.hooks.fire('action:privileges.categories.give', {
                 privileges,
                 cids: Array.isArray(cid) ? cid : [cid],
-                members: Array.isArray(members) ? members : [members],
+                members: Array.isArray(members) ? members : [members]
             }))
             .then(() => callback(null))
-            .catch((error: Error) => callback(error));
+            .catch((error: Error) => callback(error))
     },
 
-    rescind(privileges, cid, members, callback) {
+    rescind (privileges, cid, members, callback) {
         helpers
             .giveOrRescind(groups.leave, privileges, cid, members)
             .then(() => plugins.hooks.fire('action:privileges.categories.rescind', {
                 privileges,
                 cids: Array.isArray(cid) ? cid : [cid],
-                members: Array.isArray(members) ? members : [members],
+                members: Array.isArray(members) ? members : [members]
             }))
             .then(() => callback(null))
-            .catch((error: Error) => callback(error));
+            .catch((error: Error) => callback(error))
     },
 
     canMoveAllTopics: async function (currentCid: number, targetCid: number, uid: number): Promise<boolean> {
         const [isAdmin, isModerators]: [boolean, boolean[]] = await Promise.all([
             user.isAdministrator(uid) as boolean,
-            user.isModerator(uid, [currentCid, targetCid]) as boolean[],
-        ]);
-        return isAdmin || !isModerators.includes(false);
+            user.isModerator(uid, [currentCid, targetCid]) as boolean[]
+        ])
+        return isAdmin || !isModerators.includes(false)
     },
 
     userPrivileges: async function (
@@ -324,8 +323,8 @@ const privsCategories: PrivsCategories = {
         cid: number,
         uid: number
     ): Promise<Record<string, boolean>> {
-        const userPrivilegeList = await this.getUserPrivilegeList();
-        return await helpers.userOrGroupPrivileges(cid, uid, userPrivilegeList);
+        const userPrivilegeList = await this.getUserPrivilegeList()
+        return await helpers.userOrGroupPrivileges(cid, uid, userPrivilegeList)
     },
 
     groupPrivileges: async function (
@@ -333,9 +332,9 @@ const privsCategories: PrivsCategories = {
         cid:number,
         groupName: string
     ): Promise<Record<string, boolean>> {
-        const groupPrivilegeList = await this.getGroupPrivilegeList();
-        return await helpers.userOrGroupPrivileges(cid, groupName, groupPrivilegeList);
-    },
-};
+        const groupPrivilegeList = await this.getGroupPrivilegeList()
+        return await helpers.userOrGroupPrivileges(cid, groupName, groupPrivilegeList)
+    }
+}
 
 export = privsCategories;

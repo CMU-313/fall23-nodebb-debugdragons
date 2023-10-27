@@ -1,34 +1,33 @@
-'use strict';
-
+'use strict'
 
 define('forum/topic/merge', ['search', 'alerts', 'api'], function (search, alerts, api) {
-    const Merge = {};
-    let modal;
-    let mergeBtn;
+    const Merge = {}
+    let modal
+    let mergeBtn
 
-    let selectedTids = {};
+    let selectedTids = {}
 
     Merge.init = function (callback) {
-        callback = callback || function () {};
+        callback = callback || function () {}
         if (modal) {
-            return;
+            return
         }
         app.parseAndTranslate('partials/merge_topics_modal', {}, function (html) {
-            modal = html;
+            modal = html
 
-            $('body').append(modal);
+            $('body').append(modal)
 
-            mergeBtn = modal.find('#merge_topics_confirm');
+            mergeBtn = modal.find('#merge_topics_confirm')
 
-            modal.find('.close,#merge_topics_cancel').on('click', closeModal);
+            modal.find('.close,#merge_topics_cancel').on('click', closeModal)
 
-            $('#content').on('click', '[component="topic/select"]', onTopicClicked);
+            $('#content').on('click', '[component="topic/select"]', onTopicClicked)
 
-            showTopicsSelected();
+            showTopicsSelected()
 
             mergeBtn.on('click', function () {
-                mergeTopics(mergeBtn);
-            });
+                mergeTopics(mergeBtn)
+            })
 
             search.enableQuickSearch({
                 searchElements: {
@@ -38,107 +37,107 @@ define('forum/topic/merge', ['search', 'alerts', 'api'], function (search, alert
                 searchOptions: {
                     in: 'titles',
                 },
-            });
+            })
             modal.on('click', '[data-tid]', function () {
                 if ($(this).attr('data-tid')) {
-                    Merge.addTopic($(this).attr('data-tid'));
+                    Merge.addTopic($(this).attr('data-tid'))
                 }
-                return false;
-            });
+                return false
+            })
 
-            callback();
-        });
-    };
-
-    Merge.addTopic = function (tid, callback) {
-        callback = callback || function () {};
-        api.get(`/topics/${tid}`, {}).then(function (topicData) {
-            const title = topicData ? topicData.title : 'No title';
-            if (selectedTids[tid]) {
-                delete selectedTids[tid];
-            } else {
-                selectedTids[tid] = title;
-            }
-            checkButtonEnable();
-            showTopicsSelected();
-            callback();
-        }).catch(alerts.error);
-    };
-
-    function onTopicClicked(ev) {
-        if (!modal) {
-            return;
-        }
-        const tid = $(this).parents('[component="category/topic"]').attr('data-tid');
-        Merge.addTopic(tid);
-
-        ev.preventDefault();
-        ev.stopPropagation();
-        return false;
+            callback()
+        })
     }
 
-    function mergeTopics(btn) {
-        btn.attr('disabled', true);
-        const tids = Object.keys(selectedTids);
-        const options = {};
+    Merge.addTopic = function (tid, callback) {
+        callback = callback || function () {}
+        api.get(`/topics/${tid}`, {}).then(function (topicData) {
+            const title = topicData ? topicData.title : 'No title'
+            if (selectedTids[tid]) {
+                delete selectedTids[tid]
+            } else {
+                selectedTids[tid] = title
+            }
+            checkButtonEnable()
+            showTopicsSelected()
+            callback()
+        }).catch(alerts.error)
+    }
+
+    function onTopicClicked (ev) {
+        if (!modal) {
+            return
+        }
+        const tid = $(this).parents('[component="category/topic"]').attr('data-tid')
+        Merge.addTopic(tid)
+
+        ev.preventDefault()
+        ev.stopPropagation()
+        return false
+    }
+
+    function mergeTopics (btn) {
+        btn.attr('disabled', true)
+        const tids = Object.keys(selectedTids)
+        const options = {}
         if (modal.find('.merge-main-topic-radio').is(':checked')) {
-            options.mainTid = modal.find('.merge-main-topic-select').val();
+            options.mainTid = modal.find('.merge-main-topic-select').val()
         } else if (modal.find('.merge-new-title-radio').is(':checked')) {
-            options.newTopicTitle = modal.find('.merge-new-title-input').val();
+            options.newTopicTitle = modal.find('.merge-new-title-input').val()
         }
 
         socket.emit('topics.merge', { tids: tids, options: options }, function (err, tid) {
-            btn.removeAttr('disabled');
+            btn.removeAttr('disabled')
             if (err) {
-                return alerts.error(err);
+                return alerts.error(err)
             }
-            ajaxify.go('/topic/' + tid);
-            closeModal();
-        });
+            ajaxify.go('/topic/' + tid)
+            closeModal()
+        })
     }
 
-    function showTopicsSelected() {
+    function showTopicsSelected () {
         if (!modal) {
-            return;
+            return
         }
-        const tids = Object.keys(selectedTids);
+        const tids = Object.keys(selectedTids)
         tids.sort(function (a, b) {
-            return a - b;
-        });
+            return a - b
+        })
 
         const topics = tids.map(function (tid) {
-            return { tid: tid, title: selectedTids[tid] };
-        });
+            return { tid: tid, title: selectedTids[tid] }
+        })
 
         if (tids.length) {
             app.parseAndTranslate('partials/merge_topics_modal', {
                 config: config,
                 topics: topics,
             }, function (html) {
-                modal.find('.topics-section').html(html.find('.topics-section').html());
-                modal.find('.merge-main-topic-select').html(html.find('.merge-main-topic-select').html());
-            });
+                modal.find('.topics-section').html(html.find('.topics-section').html())
+                modal.find('.merge-main-topic-select').html(html.find('.merge-main-topic-select').html())
+            })
         } else {
-            modal.find('.topics-section').translateHtml('[[error:no-topics-selected]]');
+            modal.find('.topics-section').translateHtml('[[error:no-topics-selected]]')
         }
     }
 
-    function checkButtonEnable() {
+    function checkButtonEnable () {
         if (Object.keys(selectedTids).length) {
-            mergeBtn.removeAttr('disabled');
+            mergeBtn.removeAttr('disabled')
         } else {
-            mergeBtn.attr('disabled', true);
+            mergeBtn.attr('disabled', true)
         }
     }
 
-    function closeModal() {
+    function closeModal () {
         if (modal) {
-            modal.remove();
-            modal = null;
+            modal.remove()
+            modal = null
         }
-        selectedTids = {};
-        $('#content').off('click', '[component="topic/select"]', onTopicClicked);
+        selectedTids = {}
+        $('#content').off('click', '[component="topic/select"]', onTopicClicked)
     }
 
-    return Merge;
-});
+    return Merge
+})

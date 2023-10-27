@@ -1,4 +1,4 @@
-import { UserObjectSlim } from './user';
+import { UserObjectSlim } from './user'
 
 export type FlagHistoryObject = {
   history: History[];
@@ -23,7 +23,6 @@ interface Meta {
 export type FlagNotesObject = {
   notes: Note[];
 };
-
 
 export interface Note {
   uid: number;
