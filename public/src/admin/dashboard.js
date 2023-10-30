@@ -1,68 +1,67 @@
-'use strict';
-
+'use strict'
 
 define('admin/dashboard', [
     'Chart', 'translator', 'benchpress', 'bootbox', 'alerts',
 ], function (Chart, translator, Benchpress, bootbox, alerts) {
-    const Admin = {};
+    const Admin = {}
     const intervals = {
         rooms: false,
         graphs: false,
-    };
-    let isMobile = false;
+    }
+    let isMobile = false
     const graphData = {
         rooms: {},
         traffic: {},
-    };
+    }
     const currentGraph = {
         units: 'hours',
         until: undefined,
-    };
+    }
 
     const DEFAULTS = {
         roomInterval: 10000,
         graphInterval: 15000,
         realtimeInterval: 1500,
-    };
+    }
 
-    const usedTopicColors = [];
+    const usedTopicColors = []
 
     $(window).on('action:ajaxify.start', function () {
-        clearInterval(intervals.rooms);
-        clearInterval(intervals.graphs);
+        clearInterval(intervals.rooms)
+        clearInterval(intervals.graphs)
 
-        intervals.rooms = null;
-        intervals.graphs = null;
-        graphData.rooms = null;
-        graphData.traffic = null;
-        usedTopicColors.length = 0;
-    });
+        intervals.rooms = null
+        intervals.graphs = null
+        graphData.rooms = null
+        graphData.traffic = null
+        usedTopicColors.length = 0
+    })
 
     Admin.init = function () {
-        app.enterRoom('admin');
+        app.enterRoom('admin')
 
-        isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 
-        $('[data-toggle="tooltip"]').tooltip();
+        $('[data-toggle="tooltip"]').tooltip()
 
-        setupRealtimeButton();
+        setupRealtimeButton()
         setupGraphs(function () {
-            socket.emit('admin.rooms.getAll', Admin.updateRoomUsage);
-            initiateDashboard();
-        });
-        setupFullscreen();
-    };
+            socket.emit('admin.rooms.getAll', Admin.updateRoomUsage)
+            initiateDashboard()
+        })
+        setupFullscreen()
+    }
 
     Admin.updateRoomUsage = function (err, data) {
         if (err) {
-            return alerts.error(err);
+            return alerts.error(err)
         }
 
         if (JSON.stringify(graphData.rooms) === JSON.stringify(data)) {
-            return;
+            return
         }
 
-        graphData.rooms = data;
+        graphData.rooms = data
 
         const html = '<div class="text-center pull-left">' +
                         '<span class="formatted-number">' + data.onlineRegisteredCount + '</span>' +
@@ -79,23 +78,23 @@ define('admin/dashboard', [
                     '<div class="text-center pull-left">' +
                         '<span class="formatted-number">' + data.socketCount + '</span>' +
                         '<div class="stat">[[admin/dashboard:active-users.connections]]</div>' +
-                    '</div>';
+                    '</div>'
 
-        updateRegisteredGraph(data.onlineRegisteredCount, data.onlineGuestCount);
-        updatePresenceGraph(data.users);
-        updateTopicsGraph(data.topTenTopics);
+        updateRegisteredGraph(data.onlineRegisteredCount, data.onlineGuestCount)
+        updatePresenceGraph(data.users)
+        updateTopicsGraph(data.topTenTopics)
 
-        $('#active-users').translateHtml(html);
-    };
+        $('#active-users').translateHtml(html)
+    }
 
     const graphs = {
         traffic: null,
         registered: null,
         presence: null,
         topics: null,
-    };
+    }
 
-    const topicColors = ['#bf616a', '#5B90BF', '#d08770', '#ebcb8b', '#a3be8c', '#96b5b4', '#8fa1b3', '#b48ead', '#ab7967', '#46BFBD'];
+    const topicColors = ['#bf616a', '#5B90BF', '#d08770', '#ebcb8b', '#a3be8c', '#96b5b4', '#8fa1b3', '#b48ead', '#ab7967', '#46BFBD']
 
     /* eslint-disable */
     // from chartjs.org
@@ -128,23 +127,23 @@ define('admin/dashboard', [
     }
     /* eslint-enable */
 
-    function setupGraphs(callback) {
-        callback = callback || function () {};
-        const trafficCanvas = document.getElementById('analytics-traffic');
-        const registeredCanvas = document.getElementById('analytics-registered');
-        const presenceCanvas = document.getElementById('analytics-presence');
-        const topicsCanvas = document.getElementById('analytics-topics');
-        const trafficCtx = trafficCanvas.getContext('2d');
-        const registeredCtx = registeredCanvas.getContext('2d');
-        const presenceCtx = presenceCanvas.getContext('2d');
-        const topicsCtx = topicsCanvas.getContext('2d');
-        const trafficLabels = utils.getHoursArray();
+    function setupGraphs (callback) {
+        callback = callback || function () {}
+        const trafficCanvas = document.getElementById('analytics-traffic')
+        const registeredCanvas = document.getElementById('analytics-registered')
+        const presenceCanvas = document.getElementById('analytics-presence')
+        const topicsCanvas = document.getElementById('analytics-topics')
+        const trafficCtx = trafficCanvas.getContext('2d')
+        const registeredCtx = registeredCanvas.getContext('2d')
+        const presenceCtx = presenceCanvas.getContext('2d')
+        const topicsCtx = topicsCanvas.getContext('2d')
+        const trafficLabels = utils.getHoursArray()
 
         if (isMobile) {
-            Chart.defaults.global.tooltips.enabled = false;
+            Chart.defaults.global.tooltips.enabled = false
         }
 
-        const t = translator.Translator.create();
+        const t = translator.Translator.create()
         Promise.all([
             t.translateKey('admin/dashboard:graphs.page-views', []),
             t.translateKey('admin/dashboard:graphs.page-views-registered', []),
@@ -213,15 +212,15 @@ define('admin/dashboard', [
                         data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     },
                 ],
-            };
+            }
 
-            trafficCanvas.width = $(trafficCanvas).parent().width();
+            trafficCanvas.width = $(trafficCanvas).parent().width()
 
-            data.datasets[0].yAxisID = 'left-y-axis';
-            data.datasets[1].yAxisID = 'left-y-axis';
-            data.datasets[2].yAxisID = 'left-y-axis';
-            data.datasets[3].yAxisID = 'left-y-axis';
-            data.datasets[4].yAxisID = 'right-y-axis';
+            data.datasets[0].yAxisID = 'left-y-axis'
+            data.datasets[1].yAxisID = 'left-y-axis'
+            data.datasets[2].yAxisID = 'left-y-axis'
+            data.datasets[3].yAxisID = 'left-y-axis'
+            data.datasets[4].yAxisID = 'right-y-axis'
 
             graphs.traffic = new Chart(trafficCtx, {
                 type: 'line',
@@ -263,7 +262,7 @@ define('admin/dashboard', [
                         mode: 'x',
                     },
                 },
-            });
+            })
 
             graphs.registered = new Chart(registeredCtx, {
                 type: 'doughnut',
@@ -281,7 +280,7 @@ define('admin/dashboard', [
                         display: false,
                     },
                 },
-            });
+            })
 
             graphs.presence = new Chart(presenceCtx, {
                 type: 'doughnut',
@@ -299,7 +298,7 @@ define('admin/dashboard', [
                         display: false,
                     },
                 },
-            });
+            })
 
             graphs.topics = new Chart(topicsCtx, {
                 type: 'doughnut',
@@ -317,31 +316,31 @@ define('admin/dashboard', [
                         display: false,
                     },
                 },
-            });
+            })
 
-            updateTrafficGraph();
+            updateTrafficGraph()
 
-            $(window).on('resize', adjustPieCharts);
-            adjustPieCharts();
+            $(window).on('resize', adjustPieCharts)
+            adjustPieCharts()
 
             $('[data-action="updateGraph"]:not([data-units="custom"])').on('click', function () {
-                let until = new Date();
-                const amount = $(this).attr('data-amount');
+                let until = new Date()
+                const amount = $(this).attr('data-amount')
                 if ($(this).attr('data-units') === 'days') {
-                    until.setHours(0, 0, 0, 0);
+                    until.setHours(0, 0, 0, 0)
                 }
-                until = until.getTime();
-                updateTrafficGraph($(this).attr('data-units'), until, amount);
+                until = until.getTime()
+                updateTrafficGraph($(this).attr('data-units'), until, amount)
 
                 require(['translator'], function (translator) {
                     translator.translate('[[admin/dashboard:page-views-custom]]', function (translated) {
-                        $('[data-action="updateGraph"][data-units="custom"]').text(translated);
-                    });
-                });
-            });
+                        $('[data-action="updateGraph"][data-units="custom"]').text(translated)
+                    })
+                })
+            })
 
             $('[data-action="updateGraph"][data-units="custom"]').on('click', function () {
-                const targetEl = $(this);
+                const targetEl = $(this)
 
                 Benchpress.render('admin/partials/pageviews-range-select', {}).then(function (html) {
                     const modal = bootbox.dialog({
@@ -355,69 +354,69 @@ define('admin/dashboard', [
                             },
                         },
                     }).on('shown.bs.modal', function () {
-                        const date = new Date();
-                        const today = date.toISOString().slice(0, 10);
-                        date.setDate(date.getDate() - 1);
-                        const yesterday = date.toISOString().slice(0, 10);
+                        const date = new Date()
+                        const today = date.toISOString().slice(0, 10)
+                        date.setDate(date.getDate() - 1)
+                        const yesterday = date.toISOString().slice(0, 10)
 
-                        modal.find('#startRange').val(targetEl.attr('data-startRange') || yesterday);
-                        modal.find('#endRange').val(targetEl.attr('data-endRange') || today);
-                    });
+                        modal.find('#startRange').val(targetEl.attr('data-startRange') || yesterday)
+                        modal.find('#endRange').val(targetEl.attr('data-endRange') || today)
+                    })
 
-                    function submit() {
+                    function submit () {
                         // NEED TO ADD VALIDATION HERE FOR YYYY-MM-DD
-                        const formData = modal.find('form').serializeObject();
-                        const validRegexp = /\d{4}-\d{2}-\d{2}/;
+                        const formData = modal.find('form').serializeObject()
+                        const validRegexp = /\d{4}-\d{2}-\d{2}/
 
                         // Input validation
                         if (!formData.startRange && !formData.endRange) {
                             // No range? Assume last 30 days
-                            updateTrafficGraph('days');
-                            return;
+                            updateTrafficGraph('days')
+                            return
                         } else if (!validRegexp.test(formData.startRange) || !validRegexp.test(formData.endRange)) {
                             // Invalid Input
-                            modal.find('.alert-danger').removeClass('hidden');
-                            return false;
+                            modal.find('.alert-danger').removeClass('hidden')
+                            return false
                         }
 
-                        let until = new Date(formData.endRange);
-                        until.setDate(until.getDate() + 1);
-                        until = until.getTime();
-                        const amount = (until - new Date(formData.startRange).getTime()) / (1000 * 60 * 60 * 24);
+                        let until = new Date(formData.endRange)
+                        until.setDate(until.getDate() + 1)
+                        until = until.getTime()
+                        const amount = (until - new Date(formData.startRange).getTime()) / (1000 * 60 * 60 * 24)
 
-                        updateTrafficGraph('days', until, amount);
+                        updateTrafficGraph('days', until, amount)
 
                         // Update "custom range" label
-                        targetEl.attr('data-startRange', formData.startRange);
-                        targetEl.attr('data-endRange', formData.endRange);
-                        targetEl.html(formData.startRange + ' &ndash; ' + formData.endRange);
+                        targetEl.attr('data-startRange', formData.startRange)
+                        targetEl.attr('data-endRange', formData.endRange)
+                        targetEl.html(formData.startRange + ' &ndash; ' + formData.endRange)
                     }
-                });
-            });
+                })
+            })
 
-            socket.emit('admin.rooms.getAll', Admin.updateRoomUsage);
-            initiateDashboard();
-            callback();
-        });
+            socket.emit('admin.rooms.getAll', Admin.updateRoomUsage)
+            initiateDashboard()
+            callback()
+        })
     }
 
-    function adjustPieCharts() {
+    function adjustPieCharts () {
         $('.pie-chart.legend-up').each(function () {
-            const $this = $(this);
+            const $this = $(this)
 
             if ($this.width() < 320) {
-                $this.addClass('compact');
+                $this.addClass('compact')
             } else {
-                $this.removeClass('compact');
+                $this.removeClass('compact')
             }
-        });
+        })
     }
 
-    function updateTrafficGraph(units, until, amount) {
+    function updateTrafficGraph (units, until, amount) {
         // until and amount are optional
 
         if (!app.isFocused) {
-            return;
+            return
         }
 
         socket.emit('admin.analytics.get', {
@@ -427,179 +426,179 @@ define('admin/dashboard', [
             amount: amount,
         }, function (err, data) {
             if (err) {
-                return alerts.error(err);
+                return alerts.error(err)
             }
             if (JSON.stringify(graphData.traffic) === JSON.stringify(data)) {
-                return;
+                return
             }
 
-            graphData.traffic = data;
+            graphData.traffic = data
 
             if (units === 'days') {
-                graphs.traffic.data.xLabels = utils.getDaysArray(until, amount);
+                graphs.traffic.data.xLabels = utils.getDaysArray(until, amount)
             } else {
-                graphs.traffic.data.xLabels = utils.getHoursArray();
+                graphs.traffic.data.xLabels = utils.getHoursArray()
 
-                $('#pageViewsThirty').html(data.summary.thirty);
-                $('#pageViewsSeven').html(data.summary.seven);
-                $('#pageViewsPastDay').html(data.pastDay);
-                utils.addCommasToNumbers($('#pageViewsThirty'));
-                utils.addCommasToNumbers($('#pageViewsSeven'));
-                utils.addCommasToNumbers($('#pageViewsPastDay'));
+                $('#pageViewsThirty').html(data.summary.thirty)
+                $('#pageViewsSeven').html(data.summary.seven)
+                $('#pageViewsPastDay').html(data.pastDay)
+                utils.addCommasToNumbers($('#pageViewsThirty'))
+                utils.addCommasToNumbers($('#pageViewsSeven'))
+                utils.addCommasToNumbers($('#pageViewsPastDay'))
             }
 
-            graphs.traffic.data.datasets[0].data = data.pageviews;
-            graphs.traffic.data.datasets[1].data = data.pageviewsRegistered;
-            graphs.traffic.data.datasets[2].data = data.pageviewsGuest;
-            graphs.traffic.data.datasets[3].data = data.pageviewsBot;
-            graphs.traffic.data.datasets[4].data = data.uniqueVisitors;
-            graphs.traffic.data.labels = graphs.traffic.data.xLabels;
+            graphs.traffic.data.datasets[0].data = data.pageviews
+            graphs.traffic.data.datasets[1].data = data.pageviewsRegistered
+            graphs.traffic.data.datasets[2].data = data.pageviewsGuest
+            graphs.traffic.data.datasets[3].data = data.pageviewsBot
+            graphs.traffic.data.datasets[4].data = data.uniqueVisitors
+            graphs.traffic.data.labels = graphs.traffic.data.xLabels
 
-            graphs.traffic.update();
-            currentGraph.units = units;
-            currentGraph.until = until;
-            currentGraph.amount = amount;
+            graphs.traffic.update()
+            currentGraph.units = units
+            currentGraph.until = until
+            currentGraph.amount = amount
 
             // Update the View as JSON button url
-            const apiEl = $('#view-as-json');
+            const apiEl = $('#view-as-json')
             const newHref = $.param({
                 units: units || 'hours',
                 until: until,
                 count: amount,
-            });
-            apiEl.attr('href', config.relative_path + '/api/admin/analytics?' + newHref);
-        });
+            })
+            apiEl.attr('href', config.relative_path + '/api/admin/analytics?' + newHref)
+        })
     }
 
-    function updateRegisteredGraph(registered, guest) {
-        $('#analytics-legend .registered').parent().find('.count').text(registered);
-        $('#analytics-legend .guest').parent().find('.count').text(guest);
-        graphs.registered.data.datasets[0].data[0] = registered;
-        graphs.registered.data.datasets[0].data[1] = guest;
-        graphs.registered.update();
+    function updateRegisteredGraph (registered, guest) {
+        $('#analytics-legend .registered').parent().find('.count').text(registered)
+        $('#analytics-legend .guest').parent().find('.count').text(guest)
+        graphs.registered.data.datasets[0].data[0] = registered
+        graphs.registered.data.datasets[0].data[1] = guest
+        graphs.registered.update()
     }
 
-    function updatePresenceGraph(users) {
-        $('#analytics-presence-legend .on-categories').parent().find('.count').text(users.categories);
-        $('#analytics-presence-legend .reading-posts').parent().find('.count').text(users.topics);
-        $('#analytics-presence-legend .browsing-topics').parent().find('.count').text(users.category);
-        $('#analytics-presence-legend .recent').parent().find('.count').text(users.recent);
-        $('#analytics-presence-legend .unread').parent().find('.count').text(users.unread);
-        graphs.presence.data.datasets[0].data[0] = users.categories;
-        graphs.presence.data.datasets[0].data[1] = users.topics;
-        graphs.presence.data.datasets[0].data[2] = users.category;
-        graphs.presence.data.datasets[0].data[3] = users.recent;
-        graphs.presence.data.datasets[0].data[4] = users.unread;
+    function updatePresenceGraph (users) {
+        $('#analytics-presence-legend .on-categories').parent().find('.count').text(users.categories)
+        $('#analytics-presence-legend .reading-posts').parent().find('.count').text(users.topics)
+        $('#analytics-presence-legend .browsing-topics').parent().find('.count').text(users.category)
+        $('#analytics-presence-legend .recent').parent().find('.count').text(users.recent)
+        $('#analytics-presence-legend .unread').parent().find('.count').text(users.unread)
+        graphs.presence.data.datasets[0].data[0] = users.categories
+        graphs.presence.data.datasets[0].data[1] = users.topics
+        graphs.presence.data.datasets[0].data[2] = users.category
+        graphs.presence.data.datasets[0].data[3] = users.recent
+        graphs.presence.data.datasets[0].data[4] = users.unread
 
-        graphs.presence.update();
+        graphs.presence.update()
     }
 
-    function updateTopicsGraph(topics) {
+    function updateTopicsGraph (topics) {
         if (!topics.length) {
             translator.translate('[[admin/dashboard:no-users-browsing]]', function (translated) {
                 topics = [{
                     title: translated,
                     count: 1,
-                }];
-                updateTopicsGraph(topics);
-            });
-            return;
+                }]
+                updateTopicsGraph(topics)
+            })
+            return
         }
 
-        graphs.topics.data.labels = [];
-        graphs.topics.data.datasets[0].data = [];
-        graphs.topics.data.datasets[0].backgroundColor = [];
-        graphs.topics.data.datasets[0].hoverBackgroundColor = [];
+        graphs.topics.data.labels = []
+        graphs.topics.data.datasets[0].data = []
+        graphs.topics.data.datasets[0].backgroundColor = []
+        graphs.topics.data.datasets[0].hoverBackgroundColor = []
 
         topics.forEach(function (topic, i) {
-            graphs.topics.data.labels.push(topic.title);
-            graphs.topics.data.datasets[0].data.push(topic.count);
-            graphs.topics.data.datasets[0].backgroundColor.push(topicColors[i]);
-            graphs.topics.data.datasets[0].hoverBackgroundColor.push(lighten(topicColors[i], 10));
-        });
+            graphs.topics.data.labels.push(topic.title)
+            graphs.topics.data.datasets[0].data.push(topic.count)
+            graphs.topics.data.datasets[0].backgroundColor.push(topicColors[i])
+            graphs.topics.data.datasets[0].hoverBackgroundColor.push(lighten(topicColors[i], 10))
+        })
 
-        function buildTopicsLegend() {
-            let html = '';
+        function buildTopicsLegend () {
+            let html = ''
             topics.forEach(function (t, i) {
-                const link = t.tid ? '<a title="' + t.title + '"href="' + config.relative_path + '/topic/' + t.tid + '" target="_blank"> ' + t.title + '</a>' : t.title;
-                const label = t.count === '0' ? t.title : link;
+                const link = t.tid ? '<a title="' + t.title + '"href="' + config.relative_path + '/topic/' + t.tid + '" target="_blank"> ' + t.title + '</a>' : t.title
+                const label = t.count === '0' ? t.title : link
 
                 html += '<li>' +
                     '<div style="background-color: ' + topicColors[i] + ';"></div>' +
                     '<span> (' + t.count + ') ' + label + '</span>' +
-                    '</li>';
-            });
-            $('#topics-legend').translateHtml(html);
+                    '</li>'
+            })
+            $('#topics-legend').translateHtml(html)
         }
 
-        buildTopicsLegend();
-        graphs.topics.update();
+        buildTopicsLegend()
+        graphs.topics.update()
     }
 
-    function setupRealtimeButton() {
+    function setupRealtimeButton () {
         $('#toggle-realtime .fa').on('click', function () {
-            const $this = $(this);
+            const $this = $(this)
             if ($this.hasClass('fa-toggle-on')) {
-                $this.removeClass('fa-toggle-on').addClass('fa-toggle-off');
-                $this.parent().find('strong').html('OFF');
-                initiateDashboard(false);
+                $this.removeClass('fa-toggle-on').addClass('fa-toggle-off')
+                $this.parent().find('strong').html('OFF')
+                initiateDashboard(false)
             } else {
-                $this.removeClass('fa-toggle-off').addClass('fa-toggle-on');
-                $this.parent().find('strong').html('ON');
-                initiateDashboard(true);
+                $this.removeClass('fa-toggle-off').addClass('fa-toggle-on')
+                $this.parent().find('strong').html('ON')
+                initiateDashboard(true)
             }
-        });
+        })
     }
 
-    function initiateDashboard(realtime) {
-        clearInterval(intervals.rooms);
-        clearInterval(intervals.graphs);
+    function initiateDashboard (realtime) {
+        clearInterval(intervals.rooms)
+        clearInterval(intervals.graphs)
 
         intervals.rooms = setInterval(function () {
             if (app.isFocused && socket.connected) {
-                socket.emit('admin.rooms.getAll', Admin.updateRoomUsage);
+                socket.emit('admin.rooms.getAll', Admin.updateRoomUsage)
             }
-        }, realtime ? DEFAULTS.realtimeInterval : DEFAULTS.roomInterval);
+        }, realtime ? DEFAULTS.realtimeInterval : DEFAULTS.roomInterval)
 
         intervals.graphs = setInterval(function () {
-            updateTrafficGraph(currentGraph.units, currentGraph.until, currentGraph.amount);
-        }, realtime ? DEFAULTS.realtimeInterval : DEFAULTS.graphInterval);
+            updateTrafficGraph(currentGraph.units, currentGraph.until, currentGraph.amount)
+        }, realtime ? DEFAULTS.realtimeInterval : DEFAULTS.graphInterval)
     }
 
-    function setupFullscreen() {
-        const container = document.getElementById('analytics-panel');
-        const $container = $(container);
-        const btn = $container.find('.fa-expand');
-        let fsMethod;
-        let exitMethod;
+    function setupFullscreen () {
+        const container = document.getElementById('analytics-panel')
+        const $container = $(container)
+        const btn = $container.find('.fa-expand')
+        let fsMethod
+        let exitMethod
 
         if (container.requestFullscreen) {
-            fsMethod = 'requestFullscreen';
-            exitMethod = 'exitFullscreen';
+            fsMethod = 'requestFullscreen'
+            exitMethod = 'exitFullscreen'
         } else if (container.mozRequestFullScreen) {
-            fsMethod = 'mozRequestFullScreen';
-            exitMethod = 'mozCancelFullScreen';
+            fsMethod = 'mozRequestFullScreen'
+            exitMethod = 'mozCancelFullScreen'
         } else if (container.webkitRequestFullscreen) {
-            fsMethod = 'webkitRequestFullscreen';
-            exitMethod = 'webkitCancelFullScreen';
+            fsMethod = 'webkitRequestFullscreen'
+            exitMethod = 'webkitCancelFullScreen'
         } else if (container.msRequestFullscreen) {
-            fsMethod = 'msRequestFullscreen';
-            exitMethod = 'msCancelFullScreen';
+            fsMethod = 'msRequestFullscreen'
+            exitMethod = 'msCancelFullScreen'
         }
 
         if (fsMethod) {
-            btn.addClass('active');
+            btn.addClass('active')
             btn.on('click', function () {
                 if ($container.hasClass('fullscreen')) {
-                    document[exitMethod]();
-                    $container.removeClass('fullscreen');
+                    document[exitMethod]()
+                    $container.removeClass('fullscreen')
                 } else {
-                    container[fsMethod]();
-                    $container.addClass('fullscreen');
+                    container[fsMethod]()
+                    $container.addClass('fullscreen')
                 }
-            });
+            })
         }
     }
 
-    return Admin;
-});
+    return Admin
+})

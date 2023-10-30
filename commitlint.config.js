@@ -1,5 +1,3 @@
-'use strict';
-
 module.exports = {
     extends: ['@commitlint/config-angular'],
     rules: {
@@ -19,8 +17,8 @@ module.exports = {
                 'refactor',
                 'revert',
                 'style',
-                'test',
-            ],
-        ],
-    },
-};
+                'test'
+            ]
+        ]
+    }
+}

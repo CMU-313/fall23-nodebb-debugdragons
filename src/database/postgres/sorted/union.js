@@ -1,9 +1,7 @@
-'use strict';
-
 module.exports = function (module) {
     module.sortedSetUnionCard = async function (keys) {
         if (!Array.isArray(keys) || !keys.length) {
-            return 0;
+            return 0
         }
 
         const res = await module.pool.query({
@@ -15,38 +13,38 @@ SELECT COUNT(DISTINCT z."value") c
          ON o."_key" = z."_key"
         AND o."type" = z."type"
  WHERE o."_key" = ANY($1::TEXT[])`,
-            values: [keys],
-        });
-        return res.rows[0].c;
-    };
+            values: [keys]
+        })
+        return res.rows[0].c
+    }
 
     module.getSortedSetUnion = async function (params) {
-        params.sort = 1;
-        return await getSortedSetUnion(params);
-    };
+        params.sort = 1
+        return await getSortedSetUnion(params)
+    }
 
     module.getSortedSetRevUnion = async function (params) {
-        params.sort = -1;
-        return await getSortedSetUnion(params);
-    };
+        params.sort = -1
+        return await getSortedSetUnion(params)
+    }
 
-    async function getSortedSetUnion(params) {
-        const { sets } = params;
-        const start = params.hasOwnProperty('start') ? params.start : 0;
-        const stop = params.hasOwnProperty('stop') ? params.stop : -1;
-        let weights = params.weights || [];
-        const aggregate = params.aggregate || 'SUM';
+    async function getSortedSetUnion (params) {
+        const { sets } = params
+        const start = params.hasOwnProperty('start') ? params.start : 0
+        const stop = params.hasOwnProperty('stop') ? params.stop : -1
+        let weights = params.weights || []
+        const aggregate = params.aggregate || 'SUM'
 
         if (sets.length < weights.length) {
-            weights = weights.slice(0, sets.length);
+            weights = weights.slice(0, sets.length)
         }
         while (sets.length > weights.length) {
-            weights.push(1);
+            weights.push(1)
         }
 
-        let limit = stop - start + 1;
+        let limit = stop - start + 1
         if (limit <= 0) {
-            limit = null;
+            limit = null
         }
 
         const res = await module.pool.query({
@@ -67,17 +65,17 @@ SELECT A."value",
  ORDER BY A."score" ${params.sort > 0 ? 'ASC' : 'DESC'}
  LIMIT $4::INTEGER
 OFFSET $3::INTEGER`,
-            values: [sets, weights, start, limit],
-        });
+            values: [sets, weights, start, limit]
+        })
 
         if (params.withScores) {
             res.rows = res.rows.map(r => ({
                 value: r.value,
-                score: parseFloat(r.score),
-            }));
+                score: parseFloat(r.score)
+            }))
         } else {
-            res.rows = res.rows.map(r => r.value);
+            res.rows = res.rows.map(r => r.value)
         }
-        return res.rows;
+        return res.rows
     }
-};
+}

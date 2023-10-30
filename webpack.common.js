@@ -1,26 +1,24 @@
-'use strict';
+const path = require('path')
+const url = require('url')
+const nconf = require('nconf')
 
-const path = require('path');
-const url = require('url');
-const nconf = require('nconf');
+const activePlugins = require('./build/active_plugins.json')
 
-const activePlugins = require('./build/active_plugins.json');
-
-let relativePath = nconf.get('relative_path');
+let relativePath = nconf.get('relative_path')
 if (relativePath === undefined) {
     nconf.file({
-        file: path.resolve(__dirname, nconf.any(['config', 'CONFIG']) || 'config.json'),
-    });
+        file: path.resolve(__dirname, nconf.any(['config', 'CONFIG']) || 'config.json')
+    })
 
-    const urlObject = url.parse(nconf.get('url'));
-    relativePath = urlObject.pathname !== '/' ? urlObject.pathname.replace(/\/+$/, '') : '';
+    const urlObject = url.parse(nconf.get('url'))
+    relativePath = urlObject.pathname !== '/' ? urlObject.pathname.replace(/\/+$/, '') : ''
 }
 
 module.exports = {
     plugins: [],
     entry: {
         nodebb: './build/public/src/client.js',
-        admin: './build/public/src/admin/admin.js',
+        admin: './build/public/src/admin/admin.js'
     },
     output: {
         filename: '[name].min.js',
@@ -28,15 +26,15 @@ module.exports = {
         path: path.resolve(__dirname, 'build/public'),
         publicPath: `${relativePath}/assets/`,
         clean: {
-            keep(asset) {
+            keep (asset) {
                 return asset === 'installer.min.js' ||
-                    !asset.endsWith('.min.js');
-            },
-        },
+                    !asset.endsWith('.min.js')
+            }
+        }
     },
     watchOptions: {
         poll: 500,
-        aggregateTimeout: 250,
+        aggregateTimeout: 250
     },
     resolve: {
         symlinks: false,
@@ -44,7 +42,7 @@ module.exports = {
             'build/public/src/modules',
             'build/public/src',
             'node_modules',
-            ...activePlugins.map(p => `node_modules/${p}/node_modules`),
+            ...activePlugins.map(p => `node_modules/${p}/node_modules`)
         ],
         extensions: ['.js', '.json', '.wasm', '.mjs'],
         alias: {
@@ -57,16 +55,16 @@ module.exports = {
             Sortable: path.resolve(__dirname, 'node_modules/sortablejs'),
             cropper: path.resolve(__dirname, 'node_modules/cropperjs'),
             'jquery-ui/widgets': path.resolve(__dirname, 'node_modules/jquery-ui/ui/widgets'),
-            'ace/ace': path.resolve(__dirname, 'build/public/src/modules/ace-editor.js'),
-        },
+            'ace/ace': path.resolve(__dirname, 'build/public/src/modules/ace-editor.js')
+        }
     },
     module: {
         rules: [
             {
                 test: /\.(ts|tsx)$/,
                 exclude: /node_modules/,
-                loader: 'ignore-loader',
-            },
-        ],
-    },
-};
+                loader: 'ignore-loader'
+            }
+        ]
+    }
+}

@@ -1,5 +1,4 @@
-'use strict';
-
+'use strict'
 
 define('admin/extend/plugins', [
     'translator',
@@ -8,45 +7,45 @@ define('admin/extend/plugins', [
     'alerts',
     'jquery-ui/widgets/sortable',
 ], function (translator, Benchpress, bootbox, alerts) {
-    const Plugins = {};
+    const Plugins = {}
     Plugins.init = function () {
-        const pluginsList = $('.plugins');
-        const numPlugins = pluginsList[0].querySelectorAll('li').length;
-        let pluginID;
+        const pluginsList = $('.plugins')
+        const numPlugins = pluginsList[0].querySelectorAll('li').length
+        let pluginID
 
         if (!numPlugins) {
             translator.translate('<li><p><i>[[admin/extend/plugins:none-found]]</i></p></li>', function (html) {
-                pluginsList.append(html);
-            });
-            return;
+                pluginsList.append(html)
+            })
+            return
         }
 
-        const searchInputEl = document.querySelector('#plugin-search');
-        searchInputEl.value = '';
+        const searchInputEl = document.querySelector('#plugin-search')
+        searchInputEl.value = ''
 
         pluginsList.on('click', 'button[data-action="toggleActive"]', function () {
-            const pluginEl = $(this).parents('li');
-            pluginID = pluginEl.attr('data-plugin-id');
-            const btn = $('[id="' + pluginID + '"] [data-action="toggleActive"]');
+            const pluginEl = $(this).parents('li')
+            pluginID = pluginEl.attr('data-plugin-id')
+            const btn = $('[id="' + pluginID + '"] [data-action="toggleActive"]')
 
-            const pluginData = ajaxify.data.installed[pluginEl.attr('data-plugin-index')];
+            const pluginData = ajaxify.data.installed[pluginEl.attr('data-plugin-index')]
 
-            function toggleActivate() {
+            function toggleActivate () {
                 socket.emit('admin.plugins.toggleActive', pluginID, function (err, status) {
                     if (err) {
-                        return alerts.error(err);
+                        return alerts.error(err)
                     }
                     translator.translate('<i class="fa fa-power-off"></i> [[admin/extend/plugins:plugin-item.' + (status.active ? 'deactivate' : 'activate') + ']]', function (buttonText) {
-                        btn.html(buttonText);
-                        btn.toggleClass('btn-warning', status.active).toggleClass('btn-success', !status.active);
+                        btn.html(buttonText)
+                        btn.toggleClass('btn-warning', status.active).toggleClass('btn-success', !status.active)
 
                         // clone it to active plugins tab
                         if (status.active && !$('#active [id="' + pluginID + '"]').length) {
-                            $('#active ul').prepend(pluginEl.clone(true));
+                            $('#active ul').prepend(pluginEl.clone(true))
                         }
 
                         // Toggle active state in template data
-                        pluginData.active = !pluginData.active;
+                        pluginData.active = !pluginData.active
 
                         alerts.alert({
                             alert_id: 'plugin_toggled',
@@ -56,12 +55,12 @@ define('admin/extend/plugins', [
                             timeout: 5000,
                             clickfn: function () {
                                 require(['admin/modules/instance'], function (instance) {
-                                    instance.rebuildAndRestart();
-                                });
+                                    instance.rebuildAndRestart()
+                                })
                             },
-                        });
-                    });
-                });
+                        })
+                    })
+                })
             }
 
             if (pluginData.license && pluginData.active !== true) {
@@ -82,150 +81,150 @@ define('admin/extend/plugins', [
                             },
                         },
                         onShown: function () {
-                            const saveEl = this.querySelector('button.btn-primary');
+                            const saveEl = this.querySelector('button.btn-primary')
                             if (saveEl) {
-                                saveEl.focus();
+                                saveEl.focus()
                             }
                         },
-                    });
-                });
+                    })
+                })
             } else {
-                toggleActivate(pluginID);
+                toggleActivate(pluginID)
             }
-        });
+        })
 
         pluginsList.on('click', 'button[data-action="toggleInstall"]', function () {
-            const btn = $(this);
-            btn.attr('disabled', true);
-            pluginID = $(this).parents('li').attr('data-plugin-id');
+            const btn = $(this)
+            btn.attr('disabled', true)
+            pluginID = $(this).parents('li').attr('data-plugin-id')
 
             if ($(this).attr('data-installed') === '1') {
-                return Plugins.toggleInstall(pluginID, $(this).parents('li').attr('data-version'));
+                return Plugins.toggleInstall(pluginID, $(this).parents('li').attr('data-version'))
             }
 
             Plugins.suggest(pluginID, function (err, payload) {
                 if (err) {
                     bootbox.confirm(translator.compile('admin/extend/plugins:alert.suggest-error', err.status, err.responseText), function (confirm) {
                         if (confirm) {
-                            Plugins.toggleInstall(pluginID, 'latest');
+                            Plugins.toggleInstall(pluginID, 'latest')
                         } else {
-                            btn.removeAttr('disabled');
+                            btn.removeAttr('disabled')
                         }
-                    });
-                    return;
+                    })
+                    return
                 }
 
                 if (payload.version !== 'latest') {
-                    Plugins.toggleInstall(pluginID, payload.version);
+                    Plugins.toggleInstall(pluginID, payload.version)
                 } else if (payload.version === 'latest') {
                     confirmInstall(pluginID, function (confirm) {
                         if (confirm) {
-                            Plugins.toggleInstall(pluginID, 'latest');
+                            Plugins.toggleInstall(pluginID, 'latest')
                         } else {
-                            btn.removeAttr('disabled');
+                            btn.removeAttr('disabled')
                         }
-                    });
+                    })
                 } else {
-                    btn.removeAttr('disabled');
+                    btn.removeAttr('disabled')
                 }
-            });
-        });
+            })
+        })
 
         pluginsList.on('click', 'button[data-action="upgrade"]', function () {
-            const btn = $(this);
-            const parent = btn.parents('li');
-            pluginID = parent.attr('data-plugin-id');
+            const btn = $(this)
+            const parent = btn.parents('li')
+            pluginID = parent.attr('data-plugin-id')
 
             Plugins.suggest(pluginID, function (err, payload) {
                 if (err) {
-                    return bootbox.alert('[[admin/extend/plugins:alert.package-manager-unreachable]]');
+                    return bootbox.alert('[[admin/extend/plugins:alert.package-manager-unreachable]]')
                 }
 
                 require(['compare-versions'], function (compareVersions) {
-                    const currentVersion = parent.find('.currentVersion').text();
+                    const currentVersion = parent.find('.currentVersion').text()
                     if (payload.version !== 'latest' && compareVersions.compare(payload.version, currentVersion, '>')) {
-                        upgrade(pluginID, btn, payload.version);
+                        upgrade(pluginID, btn, payload.version)
                     } else if (payload.version === 'latest') {
                         confirmInstall(pluginID, function () {
-                            upgrade(pluginID, btn, payload.version);
-                        });
+                            upgrade(pluginID, btn, payload.version)
+                        })
                     } else {
-                        bootbox.alert(translator.compile('admin/extend/plugins:alert.incompatible', app.config.version, payload.version));
+                        bootbox.alert(translator.compile('admin/extend/plugins:alert.incompatible', app.config.version, payload.version))
                     }
-                });
-            });
-        });
+                })
+            })
+        })
 
         $(searchInputEl).on('input propertychange', function () {
-            const term = $(this).val();
+            const term = $(this).val()
             $('.plugins li').each(function () {
-                const pluginId = $(this).attr('data-plugin-id');
-                $(this).toggleClass('hide', pluginId && pluginId.indexOf(term) === -1);
-            });
+                const pluginId = $(this).attr('data-plugin-id')
+                $(this).toggleClass('hide', pluginId && pluginId.indexOf(term) === -1)
+            })
 
-            const tabEls = document.querySelectorAll('.plugins .tab-pane');
+            const tabEls = document.querySelectorAll('.plugins .tab-pane')
             tabEls.forEach((tabEl) => {
-                const remaining = tabEl.querySelectorAll('li:not(.hide)').length;
-                const noticeEl = tabEl.querySelector('.no-plugins');
+                const remaining = tabEl.querySelectorAll('li:not(.hide)').length
+                const noticeEl = tabEl.querySelector('.no-plugins')
                 if (noticeEl) {
-                    noticeEl.classList.toggle('hide', remaining !== 0);
+                    noticeEl.classList.toggle('hide', remaining !== 0)
                 }
-            });
-        });
+            })
+        })
 
         $('#plugin-submit-usage').on('click', function () {
             socket.emit('admin.config.setMultiple', {
                 submitPluginUsage: $(this).prop('checked') ? '1' : '0',
             }, function (err) {
                 if (err) {
-                    return alerts.error(err);
+                    return alerts.error(err)
                 }
-            });
-        });
+            })
+        })
 
         $('#plugin-order').on('click', function () {
-            $('#order-active-plugins-modal').modal('show');
+            $('#order-active-plugins-modal').modal('show')
             socket.emit('admin.plugins.getActive', function (err, activePlugins) {
                 if (err) {
-                    return alerts.error(err);
+                    return alerts.error(err)
                 }
-                let html = '';
+                let html = ''
                 activePlugins.forEach(function (plugin) {
-                    html += '<li class="">' + plugin + '<span class="pull-right"><i class="fa fa-chevron-up"></i><i class="fa fa-chevron-down"></i></span></li>';
-                });
+                    html += '<li class="">' + plugin + '<span class="pull-right"><i class="fa fa-chevron-up"></i><i class="fa fa-chevron-down"></i></span></li>'
+                })
                 if (!activePlugins.length) {
                     translator.translate('[[admin/extend/plugins:none-active]]', function (text) {
-                        $('#order-active-plugins-modal .plugin-list').html(text).sortable();
-                    });
-                    return;
+                        $('#order-active-plugins-modal .plugin-list').html(text).sortable()
+                    })
+                    return
                 }
-                const list = $('#order-active-plugins-modal .plugin-list');
-                list.html(html).sortable();
+                const list = $('#order-active-plugins-modal .plugin-list')
+                list.html(html).sortable()
 
                 list.find('.fa-chevron-up').on('click', function () {
-                    const item = $(this).parents('li');
-                    item.prev().before(item);
-                });
+                    const item = $(this).parents('li')
+                    item.prev().before(item)
+                })
 
                 list.find('.fa-chevron-down').on('click', function () {
-                    const item = $(this).parents('li');
-                    item.next().after(item);
-                });
-            });
-        });
+                    const item = $(this).parents('li')
+                    item.next().after(item)
+                })
+            })
+        })
 
         $('#save-plugin-order').on('click', function () {
-            const plugins = $('#order-active-plugins-modal .plugin-list').children();
-            const data = [];
+            const plugins = $('#order-active-plugins-modal .plugin-list').children()
+            const data = []
             plugins.each(function (index, el) {
-                data.push({ name: $(el).text(), order: index });
-            });
+                data.push({ name: $(el).text(), order: index })
+            })
 
             socket.emit('admin.plugins.orderActivePlugins', data, function (err) {
                 if (err) {
-                    return alerts.error(err);
+                    return alerts.error(err)
                 }
-                $('#order-active-plugins-modal').modal('hide');
+                $('#order-active-plugins-modal').modal('hide')
 
                 alerts.alert({
                     alert_id: 'plugin_reordered',
@@ -235,37 +234,37 @@ define('admin/extend/plugins', [
                     timeout: 5000,
                     clickfn: function () {
                         require(['admin/modules/instance'], function (instance) {
-                            instance.rebuildAndRestart();
-                        });
+                            instance.rebuildAndRestart()
+                        })
                     },
-                });
-            });
-        });
+                })
+            })
+        })
 
-        populateUpgradeablePlugins();
-        populateActivePlugins();
-        searchInputEl.focus();
-    };
-
-    function confirmInstall(pluginID, callback) {
-        bootbox.confirm(translator.compile('admin/extend/plugins:alert.possibly-incompatible', pluginID), function (confirm) {
-            callback(confirm);
-        });
+        populateUpgradeablePlugins()
+        populateActivePlugins()
+        searchInputEl.focus()
     }
 
-    function upgrade(pluginID, btn, version) {
-        btn.attr('disabled', true).find('i').attr('class', 'fa fa-refresh fa-spin');
+    function confirmInstall (pluginID, callback) {
+        bootbox.confirm(translator.compile('admin/extend/plugins:alert.possibly-incompatible', pluginID), function (confirm) {
+            callback(confirm)
+        })
+    }
+
+    function upgrade (pluginID, btn, version) {
+        btn.attr('disabled', true).find('i').attr('class', 'fa fa-refresh fa-spin')
         socket.emit('admin.plugins.upgrade', {
             id: pluginID,
             version: version,
         }, function (err, isActive) {
             if (err) {
-                return alerts.error(err);
+                return alerts.error(err)
             }
-            const parent = btn.parents('li');
-            parent.find('.fa-exclamation-triangle').remove();
-            parent.find('.currentVersion').text(version);
-            btn.remove();
+            const parent = btn.parents('li')
+            parent.find('.fa-exclamation-triangle').remove()
+            parent.find('.currentVersion').text(version)
+            btn.remove()
             if (isActive) {
                 alerts.alert({
                     alert_id: 'plugin_upgraded',
@@ -275,28 +274,28 @@ define('admin/extend/plugins', [
                     timeout: 5000,
                     clickfn: function () {
                         require(['admin/modules/instance'], function (instance) {
-                            instance.rebuildAndRestart();
-                        });
+                            instance.rebuildAndRestart()
+                        })
                     },
-                });
+                })
             }
-        });
+        })
     }
 
     Plugins.toggleInstall = function (pluginID, version, callback) {
-        const btn = $('li[data-plugin-id="' + pluginID + '"] button[data-action="toggleInstall"]');
-        btn.find('i').attr('class', 'fa fa-refresh fa-spin');
+        const btn = $('li[data-plugin-id="' + pluginID + '"] button[data-action="toggleInstall"]')
+        btn.find('i').attr('class', 'fa fa-refresh fa-spin')
 
         socket.emit('admin.plugins.toggleInstall', {
             id: pluginID,
             version: version,
         }, function (err, pluginData) {
             if (err) {
-                btn.removeAttr('disabled');
-                return alerts.error(err);
+                btn.removeAttr('disabled')
+                return alerts.error(err)
             }
 
-            ajaxify.refresh();
+            ajaxify.refresh()
 
             alerts.alert({
                 alert_id: 'plugin_toggled',
@@ -304,16 +303,16 @@ define('admin/extend/plugins', [
                 message: '[[admin/extend/plugins:alert.' + (pluginData.installed ? 'install-success' : 'uninstall-success') + ']]',
                 type: 'info',
                 timeout: 5000,
-            });
+            })
 
             if (typeof callback === 'function') {
-                callback.apply(this, arguments);
+                callback.apply(this, arguments)
             }
-        });
-    };
+        })
+    }
 
     Plugins.suggest = function (pluginId, callback) {
-        const nbbVersion = app.config.version.match(/^\d+\.\d+\.\d+/);
+        const nbbVersion = app.config.version.match(/^\d+\.\d+\.\d+/)
         $.ajax((app.config.registry || 'https://packages.nodebb.org') + '/api/v1/suggest', {
             type: 'GET',
             data: {
@@ -322,27 +321,27 @@ define('admin/extend/plugins', [
             },
             dataType: 'json',
         }).done(function (payload) {
-            callback(undefined, payload);
-        }).fail(callback);
-    };
+            callback(undefined, payload)
+        }).fail(callback)
+    }
 
-    function populateUpgradeablePlugins() {
+    function populateUpgradeablePlugins () {
         $('#installed ul li').each(function () {
             if ($(this).children('[data-action="upgrade"]').length) {
-                $('#upgrade ul').append($(this).clone(true));
+                $('#upgrade ul').append($(this).clone(true))
             }
-        });
+        })
     }
 
-    function populateActivePlugins() {
+    function populateActivePlugins () {
         $('#installed ul li').each(function () {
             if ($(this).hasClass('active')) {
-                $('#active ul').append($(this).clone(true));
+                $('#active ul').append($(this).clone(true))
             } else {
-                $('#deactive ul').append($(this).clone(true));
+                $('#deactive ul').append($(this).clone(true))
             }
-        });
+        })
     }
 
-    return Plugins;
-});
+    return Plugins
+})

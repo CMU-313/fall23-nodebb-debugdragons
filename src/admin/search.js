@@ -1,15 +1,13 @@
-'use strict';
+const fs = require('fs')
+const path = require('path')
+const sanitizeHTML = require('sanitize-html')
+const nconf = require('nconf')
+const winston = require('winston')
 
-const fs = require('fs');
-const path = require('path');
-const sanitizeHTML = require('sanitize-html');
-const nconf = require('nconf');
-const winston = require('winston');
+const file = require('../file')
+const { Translator } = require('../translator')
 
-const file = require('../file');
-const { Translator } = require('../translator');
-
-function filterDirectories(directories) {
+function filterDirectories (directories) {
     return directories.map(
         // get the relative path
         // convert dir to use forward slashes
@@ -25,118 +23,120 @@ function filterDirectories(directories) {
             /\/.*\//.test(dir) &&
             !/manage\/(category|group|category-analytics)$/.test(dir)
         )
-    );
+    )
 }
 
-async function getAdminNamespaces() {
-    const directories = await file.walk(path.resolve(nconf.get('views_dir'), 'admin'));
-    return filterDirectories(directories);
+async function getAdminNamespaces () {
+    const directories = await file.walk(path.resolve(nconf.get('views_dir'), 'admin'))
+    return filterDirectories(directories)
 }
 
-function sanitize(html) {
+function sanitize (html) {
     // reduce the template to just meaningful text
     // remove all tags and strip out scripts, etc completely
     return sanitizeHTML(html, {
         allowedTags: [],
-        allowedAttributes: [],
-    });
+        allowedAttributes: []
+    })
 }
 
-function simplify(translations) {
+function simplify (translations) {
     return translations
     // remove all mustaches
         .replace(/(?:\{{1,2}[^}]*?\}{1,2})/g, '')
     // collapse whitespace
         .replace(/(?:[ \t]*[\n\r]+[ \t]*)+/g, '\n')
-        .replace(/[\t ]+/g, ' ');
+        .replace(/[\t ]+/g, ' ')
 }
 
-function nsToTitle(namespace) {
+function nsToTitle (namespace) {
     return namespace.replace('admin/', '').split('/').map(str => str[0].toUpperCase() + str.slice(1)).join(' > ')
-        .replace(/[^a-zA-Z> ]/g, ' ');
+        .replace(/[^a-zA-Z> ]/g, ' ')
 }
 
-const fallbackCache = {};
+const fallbackCache = {}
 
-async function initFallback(namespace) {
-    const template = await fs.promises.readFile(path.resolve(nconf.get('views_dir'), `${namespace}.tpl`), 'utf8');
+async function initFallback (namespace) {
+    const template = await fs.promises.readFile(path.resolve(nconf.get('views_dir'), `${namespace}.tpl`), 'utf8')
 
-    const title = nsToTitle(namespace);
-    let translations = sanitize(template);
-    translations = Translator.removePatterns(translations);
-    translations = simplify(translations);
-    translations += `\n${title}`;
+    const title = nsToTitle(namespace)
+    let translations = sanitize(template)
+    translations = Translator.removePatterns(translations)
+    translations = simplify(translations)
+    translations += `\n${title}`
 
     return {
-        namespace: namespace,
-        translations: translations,
-        title: title,
-    };
+        namespace,
+        translations,
+        title
+    }
 }
 
-async function fallback(namespace) {
+async function fallback (namespace) {
     if (fallbackCache[namespace]) {
-        return fallbackCache[namespace];
+        return fallbackCache[namespace]
     }
 
-    const params = await initFallback(namespace);
-    fallbackCache[namespace] = params;
-    return params;
+    const params = await initFallback(namespace)
+    fallbackCache[namespace] = params
+    return params
 }
 
-async function initDict(language) {
-    const namespaces = await getAdminNamespaces();
-    return await Promise.all(namespaces.map(ns => buildNamespace(language, ns)));
+async function initDict (language) {
+    const namespaces = await getAdminNamespaces()
+    return await Promise.all(namespaces.map(ns => buildNamespace(language, ns)))
 }
 
-async function buildNamespace(language, namespace) {
-    const translator = Translator.create(language);
+async function buildNamespace (language, namespace) {
+    const translator = Translator.create(language)
     try {
-        const translations = await translator.getTranslation(namespace);
+        const translations = await translator.getTranslation(namespace)
         if (!translations || !Object.keys(translations).length) {
-            return await fallback(namespace);
+            return await fallback(namespace)
         }
         // join all translations into one string separated by newlines
-        let str = Object.keys(translations).map(key => translations[key]).join('\n');
-        str = sanitize(str);
+        let str = Object.keys(translations).map(key => translations[key]).join('\n')
+        str = sanitize(str)
 
-        let title = namespace;
-        title = title.match(/admin\/(.+?)\/(.+?)$/);
+        let title = namespace
+        title = title.match(/admin\/(.+?)\/(.+?)$/)
         title = `[[admin/menu:section-${
             title[1] === 'development' ? 'advanced' : title[1]
-        }]]${title[2] ? (` > [[admin/menu:${
-            title[1]}/${title[2]}]]`) : ''}`;
+        }]]${title[2]
+            ? (` > [[admin/menu:${
+                title[1]}/${title[2]}]]`)
+            : ''}`
 
-        title = await translator.translate(title);
+        title = await translator.translate(title)
         return {
-            namespace: namespace,
+            namespace,
             translations: `${str}\n${title}`,
-            title: title,
-        };
+            title
+        }
     } catch (err) {
-        winston.error(err.stack);
+        winston.error(err.stack)
         return {
-            namespace: namespace,
-            translations: '',
-        };
+            namespace,
+            translations: ''
+        }
     }
 }
 
-const cache = {};
+const cache = {}
 
-async function getDictionary(language) {
+async function getDictionary (language) {
     if (cache[language]) {
-        return cache[language];
+        return cache[language]
     }
 
-    const params = await initDict(language);
-    cache[language] = params;
-    return params;
+    const params = await initDict(language)
+    cache[language] = params
+    return params
 }
 
-module.exports.getDictionary = getDictionary;
-module.exports.filterDirectories = filterDirectories;
-module.exports.simplify = simplify;
-module.exports.sanitize = sanitize;
+module.exports.getDictionary = getDictionary
+module.exports.filterDirectories = filterDirectories
+module.exports.simplify = simplify
+module.exports.sanitize = sanitize
 
-require('../promisify')(module.exports);
+require('../promisify')(module.exports)

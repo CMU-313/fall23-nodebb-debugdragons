@@ -1,5 +1,3 @@
-'use strict';
-
 const accountsController = {
     profile: require('./accounts/profile'),
     edit: require('./accounts/edit'),
@@ -14,7 +12,7 @@ const accountsController = {
     sessions: require('./accounts/sessions'),
     blocks: require('./accounts/blocks'),
     uploads: require('./accounts/uploads'),
-    consent: require('./accounts/consent'),
-};
+    consent: require('./accounts/consent')
+}
 
-module.exports = accountsController;
+module.exports = accountsController

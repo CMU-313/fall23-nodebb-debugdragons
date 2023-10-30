@@ -1,82 +1,81 @@
-'use strict';
-
+'use strict'
 
 define('admin/manage/tags', [
     'bootbox',
     'alerts',
     'admin/modules/selectable',
 ], function (bootbox, alerts, selectable) {
-    const Tags = {};
+    const Tags = {}
 
     Tags.init = function () {
-        selectable.enable('.tag-management', '.tag-row');
+        selectable.enable('.tag-management', '.tag-row')
 
-        handleCreate();
-        handleSearch();
-        handleRename();
-        handleDeleteSelected();
-    };
+        handleCreate()
+        handleSearch()
+        handleRename()
+        handleDeleteSelected()
+    }
 
-    function handleCreate() {
-        const createModal = $('#create-modal');
-        const createTagName = $('#create-tag-name');
-        const createModalGo = $('#create-modal-go');
+    function handleCreate () {
+        const createModal = $('#create-modal')
+        const createTagName = $('#create-tag-name')
+        const createModalGo = $('#create-modal-go')
 
         createModal.on('keypress', function (e) {
             if (e.keyCode === 13) {
-                createModalGo.click();
+                createModalGo.click()
             }
-        });
+        })
 
         $('#create').on('click', function () {
-            createModal.modal('show');
+            createModal.modal('show')
             setTimeout(function () {
-                createTagName.focus();
-            }, 250);
-        });
+                createTagName.focus()
+            }, 250)
+        })
 
         createModalGo.on('click', function () {
             socket.emit('admin.tags.create', {
                 tag: createTagName.val(),
             }, function (err) {
                 if (err) {
-                    return alerts.error(err);
+                    return alerts.error(err)
                 }
 
-                createTagName.val('');
+                createTagName.val('')
                 createModal.on('hidden.bs.modal', function () {
-                    ajaxify.refresh();
-                });
-                createModal.modal('hide');
-            });
-        });
+                    ajaxify.refresh()
+                })
+                createModal.modal('hide')
+            })
+        })
     }
 
-    function handleSearch() {
+    function handleSearch () {
         $('#tag-search').on('input propertychange', utils.debounce(function () {
             socket.emit('topics.searchAndLoadTags', {
                 query: $('#tag-search').val(),
             }, function (err, result) {
                 if (err) {
-                    return alerts.error(err);
+                    return alerts.error(err)
                 }
 
                 app.parseAndTranslate('admin/manage/tags', 'tags', {
                     tags: result.tags,
                 }, function (html) {
-                    $('.tag-list').html(html);
-                    utils.makeNumbersHumanReadable(html.find('.human-readable-number'));
-                    selectable.enable('.tag-management', '.tag-row');
-                });
-            });
-        }, 250));
+                    $('.tag-list').html(html)
+                    utils.makeNumbersHumanReadable(html.find('.human-readable-number'))
+                    selectable.enable('.tag-management', '.tag-row')
+                })
+            })
+        }, 250))
     }
 
-    function handleRename() {
+    function handleRename () {
         $('#rename').on('click', function () {
-            const tagsToModify = $('.tag-row.ui-selected');
+            const tagsToModify = $('.tag-row.ui-selected')
             if (!tagsToModify.length) {
-                return;
+                return
             }
 
             const modal = bootbox.dialog({
@@ -87,55 +86,55 @@ define('admin/manage/tags', [
                         label: 'Save',
                         className: 'btn-primary save',
                         callback: function () {
-                            const data = [];
+                            const data = []
                             tagsToModify.each(function (idx, tag) {
-                                tag = $(tag);
+                                tag = $(tag)
                                 data.push({
                                     value: tag.attr('data-tag'),
                                     newName: modal.find('[data-name="value"]').val(),
-                                });
-                            });
+                                })
+                            })
 
                             socket.emit('admin.tags.rename', data, function (err) {
                                 if (err) {
-                                    return alerts.error(err);
+                                    return alerts.error(err)
                                 }
-                                alerts.success('[[admin/manage/tags:alerts.update-success]]');
-                                ajaxify.refresh();
-                            });
+                                alerts.success('[[admin/manage/tags:alerts.update-success]]')
+                                ajaxify.refresh()
+                            })
                         },
                     },
                 },
-            });
-        });
+            })
+        })
     }
 
-    function handleDeleteSelected() {
+    function handleDeleteSelected () {
         $('#deleteSelected').on('click', function () {
-            const tagsToDelete = $('.tag-row.ui-selected');
+            const tagsToDelete = $('.tag-row.ui-selected')
             if (!tagsToDelete.length) {
-                return;
+                return
             }
 
             bootbox.confirm('[[admin/manage/tags:alerts.confirm-delete]]', function (confirm) {
                 if (!confirm) {
-                    return;
+                    return
                 }
-                const tags = [];
+                const tags = []
                 tagsToDelete.each(function (index, el) {
-                    tags.push($(el).attr('data-tag'));
-                });
+                    tags.push($(el).attr('data-tag'))
+                })
                 socket.emit('admin.tags.deleteTags', {
                     tags: tags,
                 }, function (err) {
                     if (err) {
-                        return alerts.error(err);
+                        return alerts.error(err)
                     }
-                    tagsToDelete.remove();
-                });
-            });
-        });
+                    tagsToDelete.remove()
+                })
+            })
+        })
     }
 
-    return Tags;
-});
+    return Tags
+})

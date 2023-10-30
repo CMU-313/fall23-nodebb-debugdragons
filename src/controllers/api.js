@@ -1,23 +1,21 @@
-'use strict';
+const validator = require('validator')
+const nconf = require('nconf')
 
-const validator = require('validator');
-const nconf = require('nconf');
+const meta = require('../meta')
+const user = require('../user')
+const categories = require('../categories')
+const plugins = require('../plugins')
+const translator = require('../translator')
+const languages = require('../languages')
 
-const meta = require('../meta');
-const user = require('../user');
-const categories = require('../categories');
-const plugins = require('../plugins');
-const translator = require('../translator');
-const languages = require('../languages');
+const apiController = module.exports
 
-const apiController = module.exports;
-
-const relative_path = nconf.get('relative_path');
-const upload_url = nconf.get('upload_url');
-const asset_base_url = nconf.get('asset_base_url');
-const socketioTransports = nconf.get('socket.io:transports') || ['polling', 'websocket'];
-const socketioOrigins = nconf.get('socket.io:origins');
-const websocketAddress = nconf.get('socket.io:address') || '';
+const relative_path = nconf.get('relative_path')
+const upload_url = nconf.get('upload_url')
+const asset_base_url = nconf.get('asset_base_url')
+const socketioTransports = nconf.get('socket.io:transports') || ['polling', 'websocket']
+const socketioOrigins = nconf.get('socket.io:origins')
+const websocketAddress = nconf.get('socket.io:address') || ''
 
 apiController.loadConfig = async function (req) {
     const config = {
@@ -76,56 +74,56 @@ apiController.loadConfig = async function (req) {
             message: translator.escape(validator.escape(meta.config.cookieConsentMessage || '[[global:cookies.message]]')).replace(/\\/g, '\\\\'),
             dismiss: translator.escape(validator.escape(meta.config.cookieConsentDismiss || '[[global:cookies.accept]]')).replace(/\\/g, '\\\\'),
             link: translator.escape(validator.escape(meta.config.cookieConsentLink || '[[global:cookies.learn_more]]')).replace(/\\/g, '\\\\'),
-            link_url: translator.escape(validator.escape(meta.config.cookieConsentLinkUrl || 'https://www.cookiesandyou.com')).replace(/\\/g, '\\\\'),
+            link_url: translator.escape(validator.escape(meta.config.cookieConsentLinkUrl || 'https://www.cookiesandyou.com')).replace(/\\/g, '\\\\')
         },
         thumbs: {
-            size: meta.config.topicThumbSize,
+            size: meta.config.topicThumbSize
         },
         iconBackgrounds: await user.getIconBackgrounds(req.uid),
         emailPrompt: meta.config.emailPrompt,
-        useragent: req.useragent,
-    };
+        useragent: req.useragent
+    }
 
-    let settings = config;
-    let isAdminOrGlobalMod;
+    let settings = config
+    let isAdminOrGlobalMod
     if (req.loggedIn) {
         ([settings, isAdminOrGlobalMod] = await Promise.all([
             user.getSettings(req.uid),
-            user.isAdminOrGlobalMod(req.uid),
-        ]));
+            user.isAdminOrGlobalMod(req.uid)
+        ]))
     }
 
     // Handle old skin configs
-    const oldSkins = ['noskin', 'default'];
-    settings.bootswatchSkin = oldSkins.includes(settings.bootswatchSkin) ? '' : settings.bootswatchSkin;
+    const oldSkins = ['noskin', 'default']
+    settings.bootswatchSkin = oldSkins.includes(settings.bootswatchSkin) ? '' : settings.bootswatchSkin
 
-    config.usePagination = settings.usePagination;
-    config.topicsPerPage = settings.topicsPerPage;
-    config.postsPerPage = settings.postsPerPage;
+    config.usePagination = settings.usePagination
+    config.topicsPerPage = settings.topicsPerPage
+    config.postsPerPage = settings.postsPerPage
     config.userLang = validator.escape(
         String((req.query.lang ? req.query.lang : null) || settings.userLang || config.defaultLang)
-    );
-    config.acpLang = validator.escape(String((req.query.lang ? req.query.lang : null) || settings.acpLang));
-    config.openOutgoingLinksInNewTab = settings.openOutgoingLinksInNewTab;
-    config.topicPostSort = settings.topicPostSort || config.topicPostSort;
-    config.categoryTopicSort = settings.categoryTopicSort || config.categoryTopicSort;
-    config.topicSearchEnabled = settings.topicSearchEnabled || false;
-    config.bootswatchSkin = (meta.config.disableCustomUserSkins !== 1 && settings.bootswatchSkin && settings.bootswatchSkin !== '') ? settings.bootswatchSkin : '';
+    )
+    config.acpLang = validator.escape(String((req.query.lang ? req.query.lang : null) || settings.acpLang))
+    config.openOutgoingLinksInNewTab = settings.openOutgoingLinksInNewTab
+    config.topicPostSort = settings.topicPostSort || config.topicPostSort
+    config.categoryTopicSort = settings.categoryTopicSort || config.categoryTopicSort
+    config.topicSearchEnabled = settings.topicSearchEnabled || false
+    config.bootswatchSkin = (meta.config.disableCustomUserSkins !== 1 && settings.bootswatchSkin && settings.bootswatchSkin !== '') ? settings.bootswatchSkin : ''
 
     // Overrides based on privilege
-    config.disableChatMessageEditing = isAdminOrGlobalMod ? false : config.disableChatMessageEditing;
+    config.disableChatMessageEditing = isAdminOrGlobalMod ? false : config.disableChatMessageEditing
 
-    return await plugins.hooks.fire('filter:config.get', config);
-};
+    return await plugins.hooks.fire('filter:config.get', config)
+}
 
 apiController.getConfig = async function (req, res) {
-    const config = await apiController.loadConfig(req);
-    res.json(config);
-};
+    const config = await apiController.loadConfig(req)
+    res.json(config)
+}
 
 apiController.getModerators = async function (req, res) {
-    const moderators = await categories.getModerators(req.params.cid);
-    res.json({ moderators: moderators });
-};
+    const moderators = await categories.getModerators(req.params.cid)
+    res.json({ moderators })
+}
 
-require('../promisify')(apiController, ['getConfig', 'getObject', 'getModerators']);
+require('../promisify')(apiController, ['getConfig', 'getObject', 'getModerators'])

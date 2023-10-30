@@ -1,16 +1,16 @@
-'use strict';
+'use strict'
 
 define('admin/modules/search', ['mousetrap', 'alerts'], function (mousetrap, alerts) {
-    const search = {};
+    const search = {}
 
-    function find(dict, term) {
+    function find (dict, term) {
         const html = dict.filter(function (elem) {
-            return elem.translations.toLowerCase().includes(term);
+            return elem.translations.toLowerCase().includes(term)
         }).map(function (params) {
-            const namespace = params.namespace;
-            const translations = params.translations;
-            let title = params.title;
-            const escaped = utils.escapeRegexChars(term);
+            const namespace = params.namespace
+            const translations = params.translations
+            let title = params.title
+            const escaped = utils.escapeRegexChars(term)
 
             const results = translations
             // remove all lines without a match
@@ -25,140 +25,141 @@ define('admin/modules/search', ['mousetrap', 'alerts'], function (mousetrap, ale
                 )
             // collapse whitespace
                 .replace(/(?:\n ?)+/g, '\n')
-                .trim();
+                .trim()
 
             title = title.replace(
                 new RegExp('(^.*?)(' + escaped + ')(.*?$)', 'gi'),
                 '$1<span class="search-match">$2</span>$3'
-            );
+            )
 
             return '<li role="presentation" class="result">' +
                 '<a role= "menuitem" href= "' + config.relative_path + '/' + namespace + '" >' +
                     title +
-                    '<br>' + (!results ? '' :
-                ('<small><code>' +
+                    '<br>' + (!results
+                ? ''
+                : ('<small><code>' +
                         results +
                     '</small></code>')) +
                 '</a>' +
-            '</li>';
-        }).join('');
-        return html;
+            '</li>'
+        }).join('')
+        return html
     }
 
     search.init = function () {
         if (!app.user.privileges['admin:settings']) {
-            return;
+            return
         }
 
         socket.emit('admin.getSearchDict', {}, function (err, dict) {
             if (err) {
-                alerts.error(err);
-                throw err;
+                alerts.error(err)
+                throw err
             }
-            setupACPSearch(dict);
-        });
-    };
+            setupACPSearch(dict)
+        })
+    }
 
-    function setupACPSearch(dict) {
-        const dropdown = $('#acp-search .dropdown');
-        const menu = $('#acp-search .dropdown-menu');
-        const input = $('#acp-search input');
-        const placeholderText = dropdown.attr('data-text');
+    function setupACPSearch (dict) {
+        const dropdown = $('#acp-search .dropdown')
+        const menu = $('#acp-search .dropdown-menu')
+        const input = $('#acp-search input')
+        const placeholderText = dropdown.attr('data-text')
 
         if (!config.searchEnabled) {
-            menu.addClass('search-disabled');
+            menu.addClass('search-disabled')
         }
 
         input.on('keyup', function () {
-            dropdown.addClass('open');
-        });
+            dropdown.addClass('open')
+        })
 
         $('#acp-search').parents('form').on('submit', function (ev) {
-            const query = input.val();
-            const selected = menu.get(0).querySelector('li.result > a.focus') || menu.get(0).querySelector('li.result > a');
-            const href = selected ? selected.getAttribute('href') : config.relative_path + '/search?in=titlesposts&term=' + escape(query);
+            const query = input.val()
+            const selected = menu.get(0).querySelector('li.result > a.focus') || menu.get(0).querySelector('li.result > a')
+            const href = selected ? selected.getAttribute('href') : config.relative_path + '/search?in=titlesposts&term=' + escape(query)
 
-            ajaxify.go(href.replace(/^\//, ''));
+            ajaxify.go(href.replace(/^\//, ''))
 
             setTimeout(function () {
-                dropdown.removeClass('open');
-                input.blur();
-                dropdown.attr('data-text', query || placeholderText);
-            }, 150);
+                dropdown.removeClass('open')
+                input.blur()
+                dropdown.attr('data-text', query || placeholderText)
+            }, 150)
 
-            ev.preventDefault();
-            return false;
-        });
+            ev.preventDefault()
+            return false
+        })
 
         mousetrap.bind('/', function (ev) {
-            input.select();
-            ev.preventDefault();
-        });
+            input.select()
+            ev.preventDefault()
+        })
 
         mousetrap(input[0]).bind(['up', 'down'], function (ev, key) {
-            let next;
+            let next
             if (key === 'up') {
                 next = menu.find('li.result > a.focus').removeClass('focus').parent().prev('.result')
-                    .children();
+                    .children()
                 if (!next.length) {
-                    next = menu.find('li.result > a').last();
+                    next = menu.find('li.result > a').last()
                 }
-                next.addClass('focus');
+                next.addClass('focus')
                 if (menu[0].getBoundingClientRect().top > next[0].getBoundingClientRect().top) {
-                    next[0].scrollIntoView(true);
+                    next[0].scrollIntoView(true)
                 }
             } else if (key === 'down') {
                 next = menu.find('li.result > a.focus').removeClass('focus').parent().next('.result')
-                    .children();
+                    .children()
                 if (!next.length) {
-                    next = menu.find('li.result > a').first();
+                    next = menu.find('li.result > a').first()
                 }
-                next.addClass('focus');
+                next.addClass('focus')
                 if (menu[0].getBoundingClientRect().bottom < next[0].getBoundingClientRect().bottom) {
-                    next[0].scrollIntoView(false);
+                    next[0].scrollIntoView(false)
                 }
             }
 
-            ev.preventDefault();
-        });
+            ev.preventDefault()
+        })
 
-        let prevValue;
+        let prevValue
 
         input.on('keyup focus', function () {
-            const value = input.val().toLowerCase();
+            const value = input.val().toLowerCase()
 
             if (value === prevValue) {
-                return;
+                return
             }
-            prevValue = value;
+            prevValue = value
 
-            menu.children('.result').remove();
+            menu.children('.result').remove()
 
-            const len = /\W/.test(value) ? 3 : value.length;
-            let results;
+            const len = /\W/.test(value) ? 3 : value.length
+            let results
 
-            menu.toggleClass('state-start-typing', len === 0);
-            menu.toggleClass('state-keep-typing', len > 0 && len < 3);
+            menu.toggleClass('state-start-typing', len === 0)
+            menu.toggleClass('state-keep-typing', len > 0 && len < 3)
 
             if (len >= 3) {
-                menu.prepend(find(dict, value));
+                menu.prepend(find(dict, value))
 
-                results = menu.children('.result').length;
+                results = menu.children('.result').length
 
-                menu.toggleClass('state-no-results', !results);
-                menu.toggleClass('state-yes-results', !!results);
+                menu.toggleClass('state-no-results', !results)
+                menu.toggleClass('state-yes-results', !!results)
 
                 menu.find('.search-forum')
                     .not('.divider')
                     .find('a')
                     .attr('href', config.relative_path + '/search?in=titlesposts&term=' + escape(value))
                     .find('strong')
-                    .text(value);
+                    .text(value)
             } else {
-                menu.removeClass('state-no-results state-yes-results');
+                menu.removeClass('state-no-results state-yes-results')
             }
-        });
+        })
     }
 
-    return search;
-});
+    return search
+})

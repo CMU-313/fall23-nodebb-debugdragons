@@ -1,232 +1,230 @@
-'use strict';
+const nconf = require('nconf')
+const winston = require('winston')
 
-const nconf = require('nconf');
-const winston = require('winston');
+const plugins = require('../plugins')
+const Meta = require('./index')
+const utils = require('../utils')
 
-const plugins = require('../plugins');
-const Meta = require('./index');
-const utils = require('../utils');
+const Tags = module.exports
 
-const Tags = module.exports;
-
-const url = nconf.get('url');
-const relative_path = nconf.get('relative_path');
-const upload_url = nconf.get('upload_url');
+const url = nconf.get('url')
+const relative_path = nconf.get('relative_path')
+const upload_url = nconf.get('upload_url')
 
 Tags.parse = async (req, data, meta, link) => {
     // Meta tags
     const defaultTags = [{
         name: 'viewport',
-        content: 'width=device-width, initial-scale=1.0',
+        content: 'width=device-width, initial-scale=1.0'
     }, {
         name: 'content-type',
         content: 'text/html; charset=UTF-8',
-        noEscape: true,
+        noEscape: true
     }, {
         name: 'apple-mobile-web-app-capable',
-        content: 'yes',
+        content: 'yes'
     }, {
         name: 'mobile-web-app-capable',
-        content: 'yes',
+        content: 'yes'
     }, {
         property: 'og:site_name',
-        content: Meta.config.title || 'NodeBB',
+        content: Meta.config.title || 'NodeBB'
     }, {
         name: 'msapplication-badge',
         content: `frequency=30; polling-uri=${url}/sitemap.xml`,
-        noEscape: true,
+        noEscape: true
     }, {
         name: 'theme-color',
-        content: Meta.config.themeColor || '#ffffff',
-    }];
+        content: Meta.config.themeColor || '#ffffff'
+    }]
 
     if (Meta.config.keywords) {
         defaultTags.push({
             name: 'keywords',
-            content: Meta.config.keywords,
-        });
+            content: Meta.config.keywords
+        })
     }
 
     if (Meta.config['brand:logo']) {
         defaultTags.push({
             name: 'msapplication-square150x150logo',
             content: Meta.config['brand:logo'],
-            noEscape: true,
-        });
+            noEscape: true
+        })
     }
 
-    const faviconPath = `${relative_path}/assets/uploads/system/favicon.ico`;
-    const cacheBuster = `${Meta.config['cache-buster'] ? `?${Meta.config['cache-buster']}` : ''}`;
+    const faviconPath = `${relative_path}/assets/uploads/system/favicon.ico`
+    const cacheBuster = `${Meta.config['cache-buster'] ? `?${Meta.config['cache-buster']}` : ''}`
 
     // Link Tags
     const defaultLinks = [{
         rel: 'icon',
         type: 'image/x-icon',
-        href: `${faviconPath}${cacheBuster}`,
+        href: `${faviconPath}${cacheBuster}`
     }, {
         rel: 'manifest',
         href: `${relative_path}/manifest.webmanifest`,
-        crossorigin: `use-credentials`,
-    }];
+        crossorigin: 'use-credentials'
+    }]
 
     if (plugins.hooks.hasListeners('filter:search.query')) {
         defaultLinks.push({
             rel: 'search',
             type: 'application/opensearchdescription+xml',
             title: utils.escapeHTML(String(Meta.config.title || Meta.config.browserTitle || 'NodeBB')),
-            href: `${relative_path}/osd.xml`,
-        });
+            href: `${relative_path}/osd.xml`
+        })
     }
 
     // Touch icons for mobile-devices
     if (Meta.config['brand:touchIcon']) {
         defaultLinks.push({
             rel: 'apple-touch-icon',
-            href: `${relative_path + upload_url}/system/touchicon-orig.png`,
+            href: `${relative_path + upload_url}/system/touchicon-orig.png`
         }, {
             rel: 'icon',
             sizes: '36x36',
-            href: `${relative_path + upload_url}/system/touchicon-36.png`,
+            href: `${relative_path + upload_url}/system/touchicon-36.png`
         }, {
             rel: 'icon',
             sizes: '48x48',
-            href: `${relative_path + upload_url}/system/touchicon-48.png`,
+            href: `${relative_path + upload_url}/system/touchicon-48.png`
         }, {
             rel: 'icon',
             sizes: '72x72',
-            href: `${relative_path + upload_url}/system/touchicon-72.png`,
+            href: `${relative_path + upload_url}/system/touchicon-72.png`
         }, {
             rel: 'icon',
             sizes: '96x96',
-            href: `${relative_path + upload_url}/system/touchicon-96.png`,
+            href: `${relative_path + upload_url}/system/touchicon-96.png`
         }, {
             rel: 'icon',
             sizes: '144x144',
-            href: `${relative_path + upload_url}/system/touchicon-144.png`,
+            href: `${relative_path + upload_url}/system/touchicon-144.png`
         }, {
             rel: 'icon',
             sizes: '192x192',
-            href: `${relative_path + upload_url}/system/touchicon-192.png`,
-        });
+            href: `${relative_path + upload_url}/system/touchicon-192.png`
+        })
     } else {
         defaultLinks.push({
             rel: 'apple-touch-icon',
-            href: `${relative_path}/assets/images/touch/512.png`,
+            href: `${relative_path}/assets/images/touch/512.png`
         }, {
             rel: 'icon',
             sizes: '36x36',
-            href: `${relative_path}/assets/images/touch/36.png`,
+            href: `${relative_path}/assets/images/touch/36.png`
         }, {
             rel: 'icon',
             sizes: '48x48',
-            href: `${relative_path}/assets/images/touch/48.png`,
+            href: `${relative_path}/assets/images/touch/48.png`
         }, {
             rel: 'icon',
             sizes: '72x72',
-            href: `${relative_path}/assets/images/touch/72.png`,
+            href: `${relative_path}/assets/images/touch/72.png`
         }, {
             rel: 'icon',
             sizes: '96x96',
-            href: `${relative_path}/assets/images/touch/96.png`,
+            href: `${relative_path}/assets/images/touch/96.png`
         }, {
             rel: 'icon',
             sizes: '144x144',
-            href: `${relative_path}/assets/images/touch/144.png`,
+            href: `${relative_path}/assets/images/touch/144.png`
         }, {
             rel: 'icon',
             sizes: '192x192',
-            href: `${relative_path}/assets/images/touch/192.png`,
+            href: `${relative_path}/assets/images/touch/192.png`
         }, {
             rel: 'icon',
             sizes: '512x512',
-            href: `${relative_path}/assets/images/touch/512.png`,
-        });
+            href: `${relative_path}/assets/images/touch/512.png`
+        })
     }
 
     const results = await utils.promiseParallel({
-        tags: plugins.hooks.fire('filter:meta.getMetaTags', { req: req, data: data, tags: defaultTags }),
-        links: plugins.hooks.fire('filter:meta.getLinkTags', { req: req, data: data, links: defaultLinks }),
-    });
+        tags: plugins.hooks.fire('filter:meta.getMetaTags', { req, data, tags: defaultTags }),
+        links: plugins.hooks.fire('filter:meta.getLinkTags', { req, data, links: defaultLinks })
+    })
 
     meta = results.tags.tags.concat(meta || []).map((tag) => {
         if (!tag || typeof tag.content !== 'string') {
-            winston.warn('Invalid meta tag. ', tag);
-            return tag;
+            winston.warn('Invalid meta tag. ', tag)
+            return tag
         }
 
         if (!tag.noEscape) {
-            const attributes = Object.keys(tag);
+            const attributes = Object.keys(tag)
             attributes.forEach((attr) => {
-                tag[attr] = utils.escapeHTML(String(tag[attr]));
-            });
+                tag[attr] = utils.escapeHTML(String(tag[attr]))
+            })
         }
 
-        return tag;
-    });
+        return tag
+    })
 
-    await addSiteOGImage(meta);
+    await addSiteOGImage(meta)
 
-    addIfNotExists(meta, 'property', 'og:title', Meta.config.title || 'NodeBB');
-    const ogUrl = url + (req.originalUrl !== '/' ? stripRelativePath(req.originalUrl) : '');
-    addIfNotExists(meta, 'property', 'og:url', ogUrl);
-    addIfNotExists(meta, 'name', 'description', Meta.config.description);
-    addIfNotExists(meta, 'property', 'og:description', Meta.config.description);
+    addIfNotExists(meta, 'property', 'og:title', Meta.config.title || 'NodeBB')
+    const ogUrl = url + (req.originalUrl !== '/' ? stripRelativePath(req.originalUrl) : '')
+    addIfNotExists(meta, 'property', 'og:url', ogUrl)
+    addIfNotExists(meta, 'name', 'description', Meta.config.description)
+    addIfNotExists(meta, 'property', 'og:description', Meta.config.description)
 
     link = results.links.links.concat(link || []).map((tag) => {
         if (!tag.noEscape) {
-            const attributes = Object.keys(tag);
+            const attributes = Object.keys(tag)
             attributes.forEach((attr) => {
-                tag[attr] = utils.escapeHTML(String(tag[attr]));
-            });
+                tag[attr] = utils.escapeHTML(String(tag[attr]))
+            })
         }
 
-        return tag;
-    });
+        return tag
+    })
 
-    return { meta, link };
-};
+    return { meta, link }
+}
 
-function addIfNotExists(meta, keyName, tagName, value) {
-    let exists = false;
+function addIfNotExists (meta, keyName, tagName, value) {
+    let exists = false
     meta.forEach((tag) => {
         if (tag[keyName] === tagName) {
-            exists = true;
+            exists = true
         }
-    });
+    })
 
     if (!exists && value) {
         const data = {
-            content: utils.escapeHTML(String(value)),
-        };
-        data[keyName] = tagName;
-        meta.push(data);
+            content: utils.escapeHTML(String(value))
+        }
+        data[keyName] = tagName
+        meta.push(data)
     }
 }
 
-function stripRelativePath(url) {
+function stripRelativePath (url) {
     if (url.startsWith(relative_path)) {
-        return url.slice(relative_path.length);
+        return url.slice(relative_path.length)
     }
 
-    return url;
+    return url
 }
 
-async function addSiteOGImage(meta) {
-    const key = Meta.config['og:image'] ? 'og:image' : 'brand:logo';
-    let ogImage = stripRelativePath(Meta.config[key] || '');
+async function addSiteOGImage (meta) {
+    const key = Meta.config['og:image'] ? 'og:image' : 'brand:logo'
+    let ogImage = stripRelativePath(Meta.config[key] || '')
     if (ogImage && !ogImage.startsWith('http')) {
-        ogImage = url + ogImage;
+        ogImage = url + ogImage
     }
 
     const { images } = await plugins.hooks.fire('filter:meta.addSiteOGImage', {
         images: [{
             url: ogImage || `${url}/assets/images/logo@3x.png`,
             width: ogImage ? Meta.config[`${key}:width`] : 963,
-            height: ogImage ? Meta.config[`${key}:height`] : 225,
-        }],
-    });
+            height: ogImage ? Meta.config[`${key}:height`] : 225
+        }]
+    })
 
-    const properties = ['url', 'secure_url', 'type', 'width', 'height', 'alt'];
+    const properties = ['url', 'secure_url', 'type', 'width', 'height', 'alt']
     images.forEach((image) => {
         for (const property of properties) {
             if (image.hasOwnProperty(property)) {
@@ -235,22 +233,22 @@ async function addSiteOGImage(meta) {
                     meta.push({
                         property: 'og:image',
                         content: image.url,
-                        noEscape: true,
+                        noEscape: true
                     }, {
                         property: 'og:image:url',
                         content: image.url,
-                        noEscape: true,
-                    });
-                    break;
+                        noEscape: true
+                    })
+                    break
                 }
 
                 case 'secure_url': {
                     meta.push({
                         property: `og:${property}`,
                         content: image[property],
-                        noEscape: true,
-                    });
-                    break;
+                        noEscape: true
+                    })
+                    break
                 }
 
                 case 'type':
@@ -259,11 +257,11 @@ async function addSiteOGImage(meta) {
                 case 'height': {
                     meta.push({
                         property: `og:image:${property}`,
-                        content: String(image[property]),
-                    });
+                        content: String(image[property])
+                    })
                 }
                 }
             }
         }
-    });
+    })
 }

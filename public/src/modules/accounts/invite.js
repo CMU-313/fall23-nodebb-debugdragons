@@ -1,15 +1,15 @@
-'use strict';
+'use strict'
 
 define('accounts/invite', ['api', 'benchpress', 'bootbox', 'alerts'], function (api, Benchpress, bootbox, alerts) {
-    const Invite = {};
+    const Invite = {}
 
-    function isACP() {
-        return ajaxify.data.template.name.startsWith('admin/');
+    function isACP () {
+        return ajaxify.data.template.name.startsWith('admin/')
     }
 
     Invite.handle = function () {
         $('[component="user/invite"]').on('click', function (e) {
-            e.preventDefault();
+            e.preventDefault()
             api.get(`/api/v3/users/${app.user.uid}/invites/groups`, {}).then((groups) => {
                 Benchpress.parse('modals/invite', { groups: groups }, function (html) {
                     bootbox.dialog({
@@ -27,15 +27,15 @@ define('accounts/invite', ['api', 'benchpress', 'bootbox', 'alerts'], function (
                                 callback: Invite.send,
                             },
                         },
-                    });
-                });
-            }).catch(alerts.error);
-        });
-    };
+                    })
+                })
+            }).catch(alerts.error)
+        })
+    }
 
     Invite.send = function () {
-        const $emails = $('#invite-modal-emails');
-        const $groups = $('#invite-modal-groups');
+        const $emails = $('#invite-modal-emails')
+        const $groups = $('#invite-modal-groups')
 
         const data = {
             emails: $emails.val()
@@ -45,16 +45,16 @@ define('accounts/invite', ['api', 'benchpress', 'bootbox', 'alerts'], function (
                 .filter((m, i, arr) => i === arr.indexOf(m))
                 .join(','),
             groupsToJoin: $groups.val(),
-        };
+        }
 
         if (!data.emails) {
-            return;
+            return
         }
 
         api.post(`/users/${app.user.uid}/invites`, data).then(() => {
-            alerts.success(`[[${isACP() ? 'admin/manage/users:alerts.email-sent-to' : 'users:invitation-email-sent'}, ${data.emails.replace(/,/g, '&#44; ')}]]`);
-        }).catch(alerts.error);
-    };
+            alerts.success(`[[${isACP() ? 'admin/manage/users:alerts.email-sent-to' : 'users:invitation-email-sent'}, ${data.emails.replace(/,/g, '&#44; ')}]]`)
+        }).catch(alerts.error)
+    }
 
-    return Invite;
-});
+    return Invite
+})

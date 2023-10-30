@@ -1,45 +1,43 @@
-'use strict';
+const _ = require('lodash')
 
-const _ = require('lodash');
+const groups = require('../groups')
+const plugins = require('../plugins')
+const db = require('../database')
+const privileges = require('../privileges')
+const categories = require('../categories')
+const meta = require('../meta')
+const utils = require('../utils')
 
-const groups = require('../groups');
-const plugins = require('../plugins');
-const db = require('../database');
-const privileges = require('../privileges');
-const categories = require('../categories');
-const meta = require('../meta');
-const utils = require('../utils');
+const User = module.exports
 
-const User = module.exports;
+User.email = require('./email')
+User.notifications = require('./notifications')
+User.reset = require('./reset')
+User.digest = require('./digest')
+User.interstitials = require('./interstitials')
 
-User.email = require('./email');
-User.notifications = require('./notifications');
-User.reset = require('./reset');
-User.digest = require('./digest');
-User.interstitials = require('./interstitials');
-
-require('./data')(User);
-require('./auth')(User);
-require('./bans')(User);
-require('./create')(User);
-require('./posts')(User);
-require('./topics')(User);
-require('./categories')(User);
-require('./follow')(User);
-require('./profile')(User);
-require('./admin')(User);
-require('./delete')(User);
-require('./settings')(User);
-require('./search')(User);
-require('./jobs')(User);
-require('./picture')(User);
-require('./approval')(User);
-require('./invite')(User);
-require('./password')(User);
-require('./info')(User);
-require('./online')(User);
-require('./blocks')(User);
-require('./uploads')(User);
+require('./data')(User)
+require('./auth')(User)
+require('./bans')(User)
+require('./create')(User)
+require('./posts')(User)
+require('./topics')(User)
+require('./categories')(User)
+require('./follow')(User)
+require('./profile')(User)
+require('./admin')(User)
+require('./delete')(User)
+require('./settings')(User)
+require('./search')(User)
+require('./jobs')(User)
+require('./picture')(User)
+require('./approval')(User)
+require('./invite')(User)
+require('./password')(User)
+require('./info')(User)
+require('./online')(User)
+require('./blocks')(User)
+require('./uploads')(User)
 
 /**
  * Checks if a user or users exist based on their user IDs.
@@ -48,23 +46,23 @@ require('./uploads')(User);
  */
 User.exists = async function (uids) {
     if (!Array.isArray(uids) && typeof uids !== 'string' && typeof uids !== 'number') {
-        throw new TypeError(`uids should be an array, string or number`);
+        throw new TypeError('uids should be an array, string or number')
     }
 
     const result = await (
-        Array.isArray(uids) ?
-            db.isSortedSetMembers('users:joindate', uids) :
-            db.isSortedSetMember('users:joindate', uids)
-    );
+        Array.isArray(uids)
+            ? db.isSortedSetMembers('users:joindate', uids)
+            : db.isSortedSetMember('users:joindate', uids)
+    )
 
     if (Array.isArray(uids) && !Array.isArray(result)) {
-        throw new TypeError(`Expected result to be an array of booleans`);
+        throw new TypeError('Expected result to be an array of booleans')
     } else if (!Array.isArray(uids) && typeof result !== 'boolean') {
-        throw new TypeError(`Expected result to be a boolean`);
+        throw new TypeError('Expected result to be a boolean')
     }
 
-    return result;
-};
+    return result
+}
 
 /**
  * Checks if a user exists by their slug
@@ -73,17 +71,17 @@ User.exists = async function (uids) {
  */
 User.existsBySlug = async function (userslug) {
     if (typeof userslug !== 'string') {
-        throw new TypeError(`Expected userslug to be a string`);
+        throw new TypeError('Expected userslug to be a string')
     }
 
-    const exists = await User.getUidByUserslug(userslug);
+    const exists = await User.getUidByUserslug(userslug)
 
     if (typeof !!exists !== 'boolean') {
-        throw new TypeError(`Expected exists to be a boolean`);
+        throw new TypeError('Expected exists to be a boolean')
     }
 
-    return !!exists;
-};
+    return !!exists
+}
 
 /**
  * Gets uids from a set
@@ -94,29 +92,29 @@ User.existsBySlug = async function (userslug) {
  */
 User.getUidsFromSet = async function (set, start, stop) {
     if (typeof set !== 'string') {
-        throw new TypeError(`Expected set to be a string`);
+        throw new TypeError('Expected set to be a string')
     }
     if (typeof start !== 'number') {
-        throw new TypeError(`Expected start to be a number`);
+        throw new TypeError('Expected start to be a number')
     }
     if (typeof stop !== 'number') {
-        throw new TypeError(`Expected stop to be a number`);
+        throw new TypeError('Expected stop to be a number')
     }
 
     if (set === 'users:online') {
-        const count = parseInt(stop, 10) === -1 ? stop : stop - start + 1;
-        const now = Date.now();
-        return await db.getSortedSetRevRangeByScore(set, start, count, '+inf', now - (meta.config.onlineCutoff * 60000));
+        const count = parseInt(stop, 10) === -1 ? stop : stop - start + 1
+        const now = Date.now()
+        return await db.getSortedSetRevRangeByScore(set, start, count, '+inf', now - (meta.config.onlineCutoff * 60000))
     }
 
-    const list = await db.getSortedSetRevRange(set, start, stop);
+    const list = await db.getSortedSetRevRange(set, start, stop)
 
     if (!Array.isArray(list)) {
-        throw new TypeError(`Expected list to be a list`);
+        throw new TypeError('Expected list to be a list')
     }
 
-    return list;
-};
+    return list
+}
 
 /**
  * Gets users from a set
@@ -128,24 +126,24 @@ User.getUidsFromSet = async function (set, start, stop) {
  */
 User.getUsersFromSet = async function (set, uid, start, stop) {
     if (typeof set !== 'string') {
-        throw new TypeError(`Expected set to be a string`);
+        throw new TypeError('Expected set to be a string')
     }
     if (typeof start !== 'number') {
-        throw new TypeError(`Expected start to be a number`);
+        throw new TypeError('Expected start to be a number')
     }
     if (typeof stop !== 'number') {
-        throw new TypeError(`Expected stop to be a number`);
+        throw new TypeError('Expected stop to be a number')
     }
 
-    const uids = await User.getUidsFromSet(set, start, stop);
-    const list = await User.getUsers(uids, uid);
+    const uids = await User.getUidsFromSet(set, start, stop)
+    const list = await User.getUsers(uids, uid)
 
     if (!Array.isArray(list)) {
-        throw new TypeError(`Expected list to be a list`);
+        throw new TypeError('Expected list to be a list')
     }
 
-    return list;
-};
+    return list
+}
 
 /**
  * Retrieves user data with specific fields.
@@ -156,39 +154,38 @@ User.getUsersFromSet = async function (set, uid, start, stop) {
  */
 User.getUsersWithFields = async function (uids, fields, uid) {
     if (!Array.isArray(uids) && typeof uids !== 'string' && typeof uids !== 'number') {
-        throw new TypeError(`uids should be an array, string, or number`);
+        throw new TypeError('uids should be an array, string, or number')
     }
 
     if (!Array.isArray(fields) || !fields.every(field => typeof field === 'string')) {
-        throw new TypeError(`Expected fields should be an array of strings`);
+        throw new TypeError('Expected fields should be an array of strings')
     }
 
     if (uid !== undefined && typeof uid !== 'string' && typeof uid !== 'number') {
-        throw new TypeError(`Expected uid should be a string, number, or undefined`);
+        throw new TypeError('Expected uid should be a string, number, or undefined')
     }
 
-    let results = await plugins.hooks.fire('filter:users.addFields', { fields: fields });
+    let results = await plugins.hooks.fire('filter:users.addFields', { fields })
 
     if (!results || !Array.isArray(results.fields)) {
-        throw new TypeError(`Expected results.fields to be an array`);
+        throw new TypeError('Expected results.fields to be an array')
     }
 
-    results.fields = _.uniq(results.fields);
-    const userData = await User.getUsersFields(uids, results.fields);
+    results.fields = _.uniq(results.fields)
+    const userData = await User.getUsersFields(uids, results.fields)
 
     if (!Array.isArray(userData)) {
-        throw new TypeError(`Expected userData to be an array`);
+        throw new TypeError('Expected userData to be an array')
     }
 
-    results = await plugins.hooks.fire('filter:userlist.get', { users: userData, uid: uid });
+    results = await plugins.hooks.fire('filter:userlist.get', { users: userData, uid })
 
     if (!results || !Array.isArray(results.users)) {
-        throw new TypeError(`Expected results.users to be an array of objects`);
+        throw new TypeError('Expected results.users to be an array of objects')
     }
 
-    return results.users;
-};
-
+    return results.users
+}
 
 /**
  * Retrieves user data with a set of predefined fields.
@@ -198,27 +195,27 @@ User.getUsersWithFields = async function (uids, fields, uid) {
  */
 User.getUsers = async function (uids, uid) {
     if (!Array.isArray(uids) && typeof uids !== 'string' && typeof uids !== 'number') {
-        throw new TypeError(`uids should be an array, string, number, or undefined`);
+        throw new TypeError('uids should be an array, string, number, or undefined')
     }
 
     if (uid !== undefined && typeof uid !== 'string' && typeof uid !== 'number') {
-        throw new TypeError(`uid should be a string, number, or undefined`);
+        throw new TypeError('uid should be a string, number, or undefined')
     }
 
     const userData = await User.getUsersWithFields(uids, [
         'uid', 'username', 'userslug', 'accounttype', 'picture', 'status',
         'postcount', 'reputation', 'email:confirmed', 'lastonline',
-        'flags', 'banned', 'banned:expire', 'joindate',
-    ], uid);
+        'flags', 'banned', 'banned:expire', 'joindate'
+    ], uid)
 
-    const hiddenData = await User.hidePrivateData(userData, uid);
+    const hiddenData = await User.hidePrivateData(userData, uid)
 
     if (!Array.isArray(hiddenData) && typeof hiddenData !== 'object') {
-        throw new TypeError(`Expected hiddenData to be a single user object or an array of user objects`);
+        throw new TypeError('Expected hiddenData to be a single user object or an array of user objects')
     }
 
-    return hiddenData;
-};
+    return hiddenData
+}
 
 /**
  * Retrieves the status of a user.
@@ -230,28 +227,28 @@ User.getUsers = async function (uids, uid) {
  */
 User.getStatus = function (userData) {
     if (typeof userData !== 'object' || userData === null) {
-        throw new TypeError(`Expected userData to be an object`);
+        throw new TypeError('Expected userData to be an object')
     }
     if (typeof userData.uid !== 'number') {
-        throw new TypeError(`Expected userData.uid to be a number`);
+        throw new TypeError('Expected userData.uid to be a number')
     }
     if (typeof userData.lastonline !== 'undefined' && typeof userData.lastonline !== 'number') {
-        throw new TypeError(`Expected userData.lastonline to be a number`);
+        throw new TypeError('Expected userData.lastonline to be a number')
     }
 
     if (userData.uid <= 0) {
-        return 'offline';
+        return 'offline'
     }
 
-    const isOnline = (Date.now() - userData.lastonline) < (meta.config.onlineCutoff * 60000);
-    const status = isOnline ? (userData.status || 'online') : 'offline';
+    const isOnline = (Date.now() - userData.lastonline) < (meta.config.onlineCutoff * 60000)
+    const status = isOnline ? (userData.status || 'online') : 'offline'
 
     if (typeof status !== 'string') {
-        throw new TypeError(`Expected the status to be a string`);
+        throw new TypeError('Expected the status to be a string')
     }
 
-    return status;
-};
+    return status
+}
 
 /**
  * Gets a user by their username
@@ -260,18 +257,18 @@ User.getStatus = function (userData) {
  */
 User.getUidByUsername = async function (username) {
     if (typeof username !== 'string') {
-        throw new TypeError(`Expected username to be a string`);
+        throw new TypeError('Expected username to be a string')
     }
     if (!username) {
-        return 0;
+        return 0
     }
-    const uid = await db.sortedSetScore('username:uid', username);
+    const uid = await db.sortedSetScore('username:uid', username)
 
     if (typeof uid !== 'number') {
-        throw new Error(`[[error:invalid-username]]`);
+        throw new Error('[[error:invalid-username]]')
     }
-    return uid;
-};
+    return uid
+}
 
 /**
  * Gets users by their usernames
@@ -280,15 +277,15 @@ User.getUidByUsername = async function (username) {
  */
 User.getUidsByUsernames = async function (usernames) {
     if (!Array.isArray(usernames)) {
-        throw new TypeError(`Expected usernames to be a list`);
+        throw new TypeError('Expected usernames to be a list')
     }
-    const uids = await db.sortedSetScores('username:uid', usernames);
+    const uids = await db.sortedSetScores('username:uid', usernames)
 
     if (!Array.isArray(uids)) {
-        throw new TypeError(`Expected uids to be a list}`);
+        throw new TypeError('Expected uids to be a list}')
     }
-    return uids;
-};
+    return uids
+}
 
 /**
  * Gets user by their userslug
@@ -297,22 +294,22 @@ User.getUidsByUsernames = async function (usernames) {
  */
 User.getUidByUserslug = async function (userslug) {
     if (!userslug) {
-        return 0;
+        return 0
     }
-    const result = await db.sortedSetScore('userslug:uid', userslug);
+    const result = await db.sortedSetScore('userslug:uid', userslug)
 
     if (typeof result === 'object' || typeof result === 'number') {
         if (typeof result === 'number') {
-            return result;
+            return result
         } else if (typeof result === 'object' && result !== null) {
             if (typeof result.uid === 'number') {
-                return result.uid;
+                return result.uid
             }
         }
     }
 
-    return 0;
-};
+    return 0
+}
 
 /**
  * Gets usernames by uids
@@ -321,15 +318,15 @@ User.getUidByUserslug = async function (userslug) {
  */
 User.getUsernamesByUids = async function (uids) {
     if (!Array.isArray(uids)) {
-        throw new TypeError(`Expected uids to be a list`);
+        throw new TypeError('Expected uids to be a list')
     }
-    const users = await User.getUsersFields(uids, ['username']);
+    const users = await User.getUsersFields(uids, ['username'])
 
     if (!Array.isArray(users)) {
-        throw new TypeError(`Expected users to be a list`);
+        throw new TypeError('Expected users to be a list')
     }
-    return users.map(user => user.username);
-};
+    return users.map(user => user.username)
+}
 
 /**
  * Gets a username by a user's userslug
@@ -338,18 +335,18 @@ User.getUsernamesByUids = async function (uids) {
  */
 User.getUsernameByUserslug = async function (slug) {
     if (typeof slug !== 'string') {
-        throw new TypeError(`Expected slug to be a string`);
+        throw new TypeError('Expected slug to be a string')
     }
 
-    const uid = await User.getUidByUserslug(slug);
-    const username = await User.getUserField(uid, 'username');
+    const uid = await User.getUidByUserslug(slug)
+    const username = await User.getUserField(uid, 'username')
 
     if (typeof username !== 'string') {
-        throw new TypeError(`Expected username to be a string`);
+        throw new TypeError('Expected username to be a string')
     }
 
-    return username;
-};
+    return username
+}
 
 /**
  * Gets uid by users email
@@ -358,21 +355,21 @@ User.getUsernameByUserslug = async function (slug) {
  */
 User.getUidByEmail = async function (email) {
     if (typeof email !== 'string') {
-        throw new TypeError(`Expected email to be a string`);
+        throw new TypeError('Expected email to be a string')
     }
 
-    const result = await db.sortedSetScore('email:uid', email.toLowerCase());
+    const result = await db.sortedSetScore('email:uid', email.toLowerCase())
 
     if (typeof result === 'number') {
-        return result;
+        return result
     } else if (typeof result === 'object' && result !== null) {
         if (typeof result.uid === 'number') {
-            return result.uid;
+            return result.uid
         }
     }
 
-    return 0;
-};
+    return 0
+}
 
 /**
  * Gets uids by emails
@@ -381,16 +378,16 @@ User.getUidByEmail = async function (email) {
  */
 User.getUidsByEmails = async function (emails) {
     if (!Array.isArray(emails)) {
-        throw new TypeError(`Expected emails to be a list`);
+        throw new TypeError('Expected emails to be a list')
     }
-    emails = emails.map(email => email && email.toLowerCase());
+    emails = emails.map(email => email && email.toLowerCase())
 
-    const uids = await db.sortedSetScores('email:uid', emails);
+    const uids = await db.sortedSetScores('email:uid', emails)
     if (!Array.isArray(uids)) {
-        throw new TypeError(`Expected uids to be a list`);
+        throw new TypeError('Expected uids to be a list')
     }
-    return uids;
-};
+    return uids
+}
 
 /**
  * Gets a users username by their email
@@ -399,17 +396,17 @@ User.getUidsByEmails = async function (emails) {
  */
 User.getUsernameByEmail = async function (email) {
     if (typeof email !== 'string') {
-        throw new TypeError(`Expected email to be a string`);
+        throw new TypeError('Expected email to be a string')
     }
 
-    const uid = await db.sortedSetScore('email:uid', String(email).toLowerCase());
-    const username = await User.getUserField(uid, 'username');
+    const uid = await db.sortedSetScore('email:uid', String(email).toLowerCase())
+    const username = await User.getUserField(uid, 'username')
 
     if (typeof username !== 'string') {
-        throw new TypeError(`Expected username to be a string`);
+        throw new TypeError('Expected username to be a string')
     }
-    return username;
-};
+    return username
+}
 
 /**
  * Checks account type by their uid
@@ -418,17 +415,17 @@ User.getUsernameByEmail = async function (email) {
  */
 User.getAccountTypeByUid = async function (uid) {
     if (typeof uid !== 'number') {
-        throw new Error(`[[error:invalid-username]]`);
+        throw new Error('[[error:invalid-username]]')
     }
 
-    const accounttype = User.getUserField(uid, 'accounttype');
+    const accounttype = User.getUserField(uid, 'accounttype')
 
     if (typeof accounttype !== 'object') {
-        throw new TypeError(`Expected accounttype to be a object`);
+        throw new TypeError('Expected accounttype to be a object')
     }
 
-    return accounttype;
-};
+    return accounttype
+}
 
 /**
  * Checks if a user is a moderator for a given CID or CIDs.
@@ -438,24 +435,21 @@ User.getAccountTypeByUid = async function (uid) {
  */
 User.isModerator = async function (uid, cid) {
     if (typeof uid !== 'object' && typeof uid !== 'number') {
-        return false;
+        return false
     }
 
     if (typeof cid !== 'string' && typeof cid !== 'number' && !Array.isArray(cid) && typeof cid !== 'object') {
-        throw new TypeError(`Expected cid to be a string, number, array, or object`);
+        throw new TypeError('Expected cid to be a string, number, array, or object')
     }
 
-    const result = await privileges.users.isModerator(uid, cid);
+    const result = await privileges.users.isModerator(uid, cid)
 
     if (typeof result !== 'boolean' && !Array.isArray(result)) {
-        throw new TypeError(`Expected result to be a boolean or an array of booleans`);
+        throw new TypeError('Expected result to be a boolean or an array of booleans')
     }
 
-    return result;
-};
-
-
-
+    return result
+}
 
 /**
  * Checks if user is a moderator of any category
@@ -464,18 +458,18 @@ User.isModerator = async function (uid, cid) {
  */
 User.isModeratorOfAnyCategory = async function (uid) {
     if (typeof uid !== 'number') {
-        return false;
+        return false
     }
 
-    const cids = await User.getModeratedCids(uid);
-    const check = Array.isArray(cids) ? !!cids.length : false;
+    const cids = await User.getModeratedCids(uid)
+    const check = Array.isArray(cids) ? !!cids.length : false
 
     if (typeof check !== 'boolean') {
-        throw new TypeError(`Expected check to be a boolean`);
+        throw new TypeError('Expected check to be a boolean')
     }
 
-    return check;
-};
+    return check
+}
 
 /**
  * Checks if user is an admin
@@ -484,17 +478,17 @@ User.isModeratorOfAnyCategory = async function (uid) {
  */
 User.isAdministrator = async function (uid) {
     if (typeof uid !== 'number') {
-        return false;
+        return false
     }
 
-    const check = await privileges.users.isAdministrator(uid);
+    const check = await privileges.users.isAdministrator(uid)
 
     if (typeof check !== 'boolean') {
-        throw new TypeError(`Expected check to be a boolean`);
+        throw new TypeError('Expected check to be a boolean')
     }
 
-    return check;
-};
+    return check
+}
 
 /**
  * Checks if user is a global moderator
@@ -503,17 +497,17 @@ User.isAdministrator = async function (uid) {
  */
 User.isGlobalModerator = async function (uid) {
     if (typeof uid !== 'number') {
-        return false;
+        return false
     }
 
-    const check = await privileges.users.isGlobalModerator(uid);
+    const check = await privileges.users.isGlobalModerator(uid)
 
     if (typeof check !== 'boolean') {
-        throw new TypeError(`Expected check to be a boolean`);
+        throw new TypeError('Expected check to be a boolean')
     }
 
-    return check;
-};
+    return check
+}
 
 /**
  * Checks if user is an instructor
@@ -522,18 +516,18 @@ User.isGlobalModerator = async function (uid) {
  */
 User.isInstructor = async function (uid) {
     if (typeof uid !== 'number') {
-        return false;
+        return false
     }
 
-    const accounttype = await User.getAccountTypeByUid(uid);
-    const check = accounttype === 'instructor';
+    const accounttype = await User.getAccountTypeByUid(uid)
+    const check = accounttype === 'instructor'
 
     if (typeof check !== 'boolean') {
-        throw new TypeError(`Expected check to be a boolean`);
+        throw new TypeError('Expected check to be a boolean')
     }
 
-    return check;
-};
+    return check
+}
 
 /**
  * Checks if user gets priviledges
@@ -542,21 +536,21 @@ User.isInstructor = async function (uid) {
  */
 User.getPrivileges = async function (uid) {
     if (typeof uid !== 'number') {
-        throw new Error('[[error:invalid-username]]');
+        throw new Error('[[error:invalid-username]]')
     }
 
     const check = await utils.promiseParallel({
         isAdmin: User.isAdministrator(uid),
         isGlobalModerator: User.isGlobalModerator(uid),
-        isModeratorOfAnyCategory: User.isModeratorOfAnyCategory(uid),
-    });
+        isModeratorOfAnyCategory: User.isModeratorOfAnyCategory(uid)
+    })
 
     if (typeof check !== 'object') {
-        throw new TypeError(`Expected check to be a object`);
+        throw new TypeError('Expected check to be a object')
     }
 
-    return check;
-};
+    return check
+}
 
 /**
  * Checks if user is priviledged
@@ -565,21 +559,21 @@ User.getPrivileges = async function (uid) {
  */
 User.isPrivileged = async function (uid) {
     if (typeof uid !== 'number') {
-        return true;
+        return true
     }
     if (!(parseInt(uid, 10) > 0)) {
-        return false;
+        return false
     }
 
-    const results = await User.getPrivileges(uid);
-    const check = results ? (results.isAdmin || results.isGlobalModerator || results.isModeratorOfAnyCategory) : false;
+    const results = await User.getPrivileges(uid)
+    const check = results ? (results.isAdmin || results.isGlobalModerator || results.isModeratorOfAnyCategory) : false
 
     if (typeof check !== 'boolean') {
-        throw new TypeError(`Expected result to be a boolean`);
+        throw new TypeError('Expected result to be a boolean')
     }
 
-    return check;
-};
+    return check
+}
 
 /**
  * Checks if user is an admin or global moderator
@@ -588,21 +582,21 @@ User.isPrivileged = async function (uid) {
  */
 User.isAdminOrGlobalMod = async function (uid) {
     if (typeof uid !== 'number') {
-        return true;
+        return true
     }
 
     const [isAdmin, isGlobalMod] = await Promise.all([
         User.isAdministrator(uid),
-        User.isGlobalModerator(uid),
-    ]);
-    const check = isAdmin || isGlobalMod;
+        User.isGlobalModerator(uid)
+    ])
+    const check = isAdmin || isGlobalMod
 
     if (typeof check !== 'boolean') {
-        throw new TypeError(`Expected check to be a boolean`);
+        throw new TypeError('Expected check to be a boolean')
     }
 
-    return check;
-};
+    return check
+}
 
 /**
  * Checks if user is an admin or self
@@ -612,18 +606,18 @@ User.isAdminOrGlobalMod = async function (uid) {
  */
 User.isAdminOrSelf = async function (callerUid, uid) {
     if (typeof callerUid !== 'number') {
-        throw new TypeError(`Expected callerUid to be a number`);
+        throw new TypeError('Expected callerUid to be a number')
     }
     if (typeof uid !== 'number') {
-        throw new Error(`[[error:invalid-username]]`);
+        throw new Error('[[error:invalid-username]]')
     }
 
-    const result = await isSelfOrMethod(callerUid, uid, User.isAdministrator);
+    const result = await isSelfOrMethod(callerUid, uid, User.isAdministrator)
 
     if (result !== undefined) {
-        throw new Error(`Expected void but received a value`);
+        throw new Error('Expected void but received a value')
     }
-};
+}
 
 /**
  * Checks if user is an admin or global moderator or self
@@ -633,18 +627,18 @@ User.isAdminOrSelf = async function (callerUid, uid) {
  */
 User.isAdminOrGlobalModOrSelf = async function (callerUid, uid) {
     if (typeof callerUid !== 'number') {
-        throw new TypeError(`Expected callerUid to be a number`);
+        throw new TypeError('Expected callerUid to be a number')
     }
     if (typeof uid !== 'number') {
-        throw new Error(`[[error:invalid-username]]`);
+        throw new Error('[[error:invalid-username]]')
     }
 
-    const result = await isSelfOrMethod(callerUid, uid, User.isAdminOrGlobalMod);
+    const result = await isSelfOrMethod(callerUid, uid, User.isAdminOrGlobalMod)
 
     if (result !== undefined) {
-        throw new Error(`Expected void`);
+        throw new Error('Expected void')
     }
-};
+}
 
 /**
  * Checks if user is priviledged or self
@@ -654,18 +648,18 @@ User.isAdminOrGlobalModOrSelf = async function (callerUid, uid) {
  */
 User.isPrivilegedOrSelf = async function (callerUid, uid) {
     if (typeof callerUid !== 'number') {
-        throw new TypeError(`Expected callerUid to be a number`);
+        throw new TypeError('Expected callerUid to be a number')
     }
     if (typeof uid !== 'number') {
-        throw new Error(`[[error:invalid-username]]`);
+        throw new Error('[[error:invalid-username]]')
     }
 
-    const result = await isSelfOrMethod(callerUid, uid, User.isPrivileged);
+    const result = await isSelfOrMethod(callerUid, uid, User.isPrivileged)
 
     if (result !== undefined) {
-        throw new Error(`Expected void but received a value`);
+        throw new Error('Expected void but received a value')
     }
-};
+}
 
 /**
  * Check if the current user has certain privileges or permissions
@@ -674,24 +668,24 @@ User.isPrivilegedOrSelf = async function (callerUid, uid) {
  * @param {function(number): Promise<boolean>} method
  * @returns {Promise<void>}
  */
-async function isSelfOrMethod(callerUid, uid, method) {
+async function isSelfOrMethod (callerUid, uid, method) {
     if (typeof callerUid !== 'number') {
-        throw new TypeError(`Expected callerUid to be a number`);
+        throw new TypeError('Expected callerUid to be a number')
     }
     if (typeof uid !== 'number') {
-        throw new Error(`[[error:invalid-username]]`);
+        throw new Error('[[error:invalid-username]]')
     }
     if (typeof method !== 'function') {
-        throw new TypeError(`Expected method to be a function`);
+        throw new TypeError('Expected method to be a function')
     }
 
     if (parseInt(callerUid, 10) === parseInt(uid, 10)) {
-        return;
+        return
     }
 
-    const isPass = await method(callerUid);
+    const isPass = await method(callerUid)
     if (!isPass) {
-        throw new Error('[[error:no-privileges]]');
+        throw new Error('[[error:no-privileges]]')
     }
 }
 
@@ -700,15 +694,15 @@ async function isSelfOrMethod(callerUid, uid, method) {
  * @returns {Promise<Array<object>>}
  */
 User.getAdminsandGlobalMods = async function () {
-    const results = await groups.getMembersOfGroups(['administrators', 'Global Moderators']);
-    const check = await User.getUsersData(_.union(...results));
+    const results = await groups.getMembersOfGroups(['administrators', 'Global Moderators'])
+    const check = await User.getUsersData(_.union(...results))
 
     if (!Array.isArray(check)) {
-        throw new Error(`Expected check to be a list`);
+        throw new Error('Expected check to be a list')
     }
 
-    return check;
-};
+    return check
+}
 
 /**
  * Gets all admins, global moderators, and moderators
@@ -718,47 +712,46 @@ User.getAdminsandGlobalModsandModerators = async function () {
     const results = await Promise.all([
         groups.getMembers('administrators', 0, -1),
         groups.getMembers('Global Moderators', 0, -1),
-        User.getModeratorUids(),
-    ]);
-    const check = await User.getUsersData(_.union(...results));
+        User.getModeratorUids()
+    ])
+    const check = await User.getUsersData(_.union(...results))
 
     if (!Array.isArray(check)) {
-        throw new Error(`Expected check to be a list`);
+        throw new Error('Expected check to be a list')
     }
 
-    return check;
-};
+    return check
+}
 
 /**
  * Gets the first admin uid
  * @returns {Promise<number>}
  */
 User.getFirstAdminUid = async function () {
-    const result = (await db.getSortedSetRange('group:administrators:members', 0, 0))[0];
+    const result = (await db.getSortedSetRange('group:administrators:members', 0, 0))[0]
 
     if (result !== 'number') {
-        throw new Error(`Expected result to be a number`);
+        throw new Error('Expected result to be a number')
     }
 
-    return result;
-};
+    return result
+}
 
 /**
  * Gets the moderator uids
  * @returns {Promise<Array<number>>}
  */
 User.getModeratorUids = async function () {
-    const cids = await categories.getAllCidsFromSet('categories:cid');
-    const uids = await categories.getModeratorUids(cids);
-    const result = _.union(...uids);
+    const cids = await categories.getAllCidsFromSet('categories:cid')
+    const uids = await categories.getModeratorUids(cids)
+    const result = _.union(...uids)
 
     if (!Array.isArray(result)) {
-        throw new Error(`Expected result to be a list`);
+        throw new Error('Expected result to be a list')
     }
 
-    return result;
-};
-
+    return result
+}
 
 /**
  * Retrieves the CIDs a user is moderating.
@@ -767,31 +760,31 @@ User.getModeratorUids = async function () {
  */
 User.getModeratedCids = async function (uid) {
     if (typeof uid !== 'string' && typeof uid !== 'number') {
-        throw new TypeError(`Expected uid to be a string or number`);
+        throw new TypeError('Expected uid to be a string or number')
     }
 
     if (parseInt(uid, 10) <= 0) {
-        return [];
+        return []
     }
 
-    const cids = await categories.getAllCidsFromSet('categories:cid');
+    const cids = await categories.getAllCidsFromSet('categories:cid')
     if (!Array.isArray(cids)) {
-        throw new TypeError(`Expected cids to be an array`);
+        throw new TypeError('Expected cids to be an array')
     }
 
-    const isMods = await User.isModerator(uid, cids);
+    const isMods = await User.isModerator(uid, cids)
     if (!Array.isArray(isMods)) {
-        throw new TypeError(`Expected isMods to be an array`);
+        throw new TypeError('Expected isMods to be an array')
     }
 
-    const result = cids.filter((cid, index) => cid && isMods[index]);
+    const result = cids.filter((cid, index) => cid && isMods[index])
 
     if (!Array.isArray(result)) {
-        throw new TypeError(`Expected the result to be an array`);
+        throw new TypeError('Expected the result to be an array')
     }
 
-    return result;
-};
+    return result
+}
 
 /**
  * Registers interstitial methods for the user.
@@ -800,7 +793,7 @@ User.getModeratedCids = async function (uid) {
  */
 User.addInterstitials = function (callback) {
     if (typeof callback !== 'function') {
-        throw new TypeError(`Expected callback to be a function`);
+        throw new TypeError('Expected callback to be a function')
     }
 
     plugins.hooks.register('core', {
@@ -808,11 +801,11 @@ User.addInterstitials = function (callback) {
         method: [
             User.interstitials.email, // Email address (for password reset + digest)
             User.interstitials.gdpr, // GDPR information collection/processing consent + email consent
-            User.interstitials.tou, // Forum Terms of Use
-        ],
-    });
+            User.interstitials.tou // Forum Terms of Use
+        ]
+    })
 
-    callback();
-};
+    callback()
+}
 
-require('../promisify')(User);
+require('../promisify')(User)

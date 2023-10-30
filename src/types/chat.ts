@@ -1,4 +1,4 @@
-import { UserObjectSlim } from './user';
+import { UserObjectSlim } from './user'
 
 export type MessageObject = {
   content: string;

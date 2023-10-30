@@ -1,5 +1,5 @@
-import { GroupFullObject } from './group';
-import { StatusObject } from './status';
+import { GroupFullObject } from './group'
+import { StatusObject } from './status'
 
 export type UserObjectSlim = {
   uid: number;
