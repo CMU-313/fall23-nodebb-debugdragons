@@ -1,4 +1,3 @@
-
 const fs = require('fs');
 const path = require('path');
 
@@ -66,7 +65,8 @@ module.exports = {
                 'no-use-before-define': 'off',
                 '@typescript-eslint/no-use-before-define': 'error',
                 camelcase: 0,
-                'standard/no-callback-literal': 0,
+                'n/no-callback-literal': 0,
+                'n/no-deprecated-api': 0,
                 indent: ['error', 4],
             },
         },

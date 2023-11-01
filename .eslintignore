@@ -17,6 +17,7 @@ logs/
 /build
 .eslintrc
 test/files
+.eslintrc.cjs
 *.min.js
 
 /public/src/app.js
