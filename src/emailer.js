@@ -6,7 +6,6 @@ const Benchpress = require('benchpressjs');
 const nodemailer = require('nodemailer');
 const wellKnownServices = require('nodemailer/lib/well-known/services');
 const { htmlToText } = require('html-to-text');
-const url = require('url');
 const path = require('path');
 const fs = require('fs');
 const _ = require('lodash');
@@ -55,13 +54,19 @@ const smtpSettingsChanged = (config) => {
 
 const getHostname = () => {
     const configUrl = nconf.get('url');
-    const parsed = url.parse(configUrl);
-    return parsed.hostname;
+    try {
+        const urlObj = new URL(configUrl);
+        return urlObj.hostname;
+    } catch (err) {
+    // Handle the error in case the URL is not valid
+        console.error(`Invalid URL: ${configUrl}`, err);
+        return null;
+    }
 };
 
 const buildCustomTemplates = async (config) => {
     try {
-        // If the new config contains any email override values, re-compile those templates
+    // If the new config contains any email override values, re-compile those templates
         const toBuild = Object
             .keys(config)
             .filter(prop => prop.startsWith('email:custom:'))
@@ -105,10 +110,10 @@ Emailer.getTemplates = async (config) => {
         const original = await fs.promises.readFile(email, 'utf8');
 
         return {
-            path: path,
+            path,
             fullpath: email,
             text: config[`email:custom:${path}`] || original,
-            original: original,
+            original,
             isCustom: !!config[`email:custom:${path}`],
         };
     }));
@@ -187,8 +192,8 @@ Emailer.registerApp = (expressApp) => {
     prevConfig = { ...meta.config };
 
     pubsub.on('config:update', (config) => {
-        // config object only contains properties for the specific acp settings page
-        // not the entire meta.config object
+    // config object only contains properties for the specific acp settings page
+    // not the entire meta.config object
         if (config) {
             // Update default payload if new logo is uploaded
             if (config.hasOwnProperty('brand:emailLogo')) {
@@ -257,8 +262,8 @@ Emailer.send = async (template, uid, params) => {
 
     const result = await Plugins.hooks.fire('filter:email.cancel', {
         cancel: false, // set to true in plugin to cancel sending email
-        template: template,
-        params: params,
+        template,
+        params,
     });
 
     if (result.cancel) {
@@ -273,7 +278,7 @@ Emailer.sendToEmail = async (template, email, language, params) => {
 
     // Digests and notifications can be one-click unsubbed
     let payload = {
-        template: template,
+        template,
         uid: params.uid,
     };
 
@@ -296,10 +301,10 @@ Emailer.sendToEmail = async (template, email, language, params) => {
     }
 
     const result = await Plugins.hooks.fire('filter:email.params', {
-        template: template,
-        email: email,
+        template,
+        email,
         language: lang,
-        params: params,
+        params,
     });
 
     template = result.template;
@@ -317,11 +322,11 @@ Emailer.sendToEmail = async (template, email, language, params) => {
         from: meta.config['email:from'] || `no-reply@${getHostname()}`,
         from_name: meta.config['email:from_name'] || 'NodeBB',
         subject: `[${meta.config.title}] ${_.unescape(subject)}`,
-        html: html,
+        html,
         plaintext: htmlToText(html, {
             tags: { img: { format: 'skip' } },
         }),
-        template: template,
+        template,
         uid: params.uid,
         pid: params.pid,
         fromUid: params.fromUid,

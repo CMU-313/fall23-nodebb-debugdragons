@@ -220,7 +220,7 @@ app = window.app || {};
             translator.translate(message, function (message) {
                 bootbox.alert({
                     title: '[[error:user-banned]]',
-                    message: message,
+                    message,
                     closeButton: false,
                     callback: function () {
                         window.location.href = config.relative_path + '/';

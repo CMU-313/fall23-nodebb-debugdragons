@@ -402,17 +402,17 @@ ajaxify.widgets = { render: render };
             },
             success: function (data, textStatus, xhr) {
                 if (!data) {
+                    callback(new Error('No data received'), null); // Handle no data error
                     return;
                 }
 
                 if (xhr.getResponseHeader('X-Redirect')) {
-                    return callback({
-                        data: {
-                            status: 302,
-                            responseJSON: data,
-                        },
-                        textStatus: 'error',
-                    });
+                    // Handle redirect as an error scenario if that's the desired behavior
+                    callback({
+                        status: 302,
+                        responseJSON: data,
+                    }, null);
+                    return;
                 }
 
                 ajaxify.data = data;
@@ -420,21 +420,25 @@ ajaxify.widgets = { render: render };
 
                 hooks.fire('action:ajaxify.dataLoaded', { url: url, data: data });
 
-                callback(null, data);
+                callback(null, data); // No error, proceed with the data
             },
-            error: function (data, textStatus) {
-                if (data.status === 0 && textStatus === 'error') {
-                    data.status = 500;
-                    data.responseJSON = data.responseJSON || {};
-                    data.responseJSON.error = '[[error:no-connection]]';
+            error: function (xhr, textStatus, errorThrown) {
+                // Normalize the error object structure
+                var errorData = {
+                    status: xhr.status,
+                    responseJSON: xhr.responseJSON || { error: errorThrown || 'Unknown error' },
+                };
+
+                if (xhr.status === 0) {
+                    errorData.status = 500; // Use appropriate status code
+                    errorData.responseJSON.error = '[[error:no-connection]]';
                 }
-                callback({
-                    data: data,
-                    textStatus: textStatus,
-                });
+
+                callback(errorData, null); // Error occurred, pass the error object
             },
         });
     };
+
 
     ajaxify.loadTemplate = function (template, callback) {
         $.ajax({

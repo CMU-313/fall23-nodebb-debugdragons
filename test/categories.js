@@ -1,6 +1,5 @@
 'use strict';
 
-
 const async = require('async');
 const assert = require('assert');
 const nconf = require('nconf');
@@ -48,7 +47,6 @@ describe('Categories', () => {
             groups.join('administrators', adminUid, done);
         });
     });
-
 
     it('should create a new category', (done) => {
         Categories.create({
@@ -285,7 +283,7 @@ describe('Categories', () => {
 
             assert.deepStrictEqual(
                 data.topics.map(t => t.title),
-                ['[[topic:topic_is_deleted]]', 'Test Topic Title', 'Test Topic Title'],
+                ['[[topic:topic_is_deleted]]', 'Test Topic Title', 'Test Topic Title']
             );
         });
 
@@ -402,7 +400,7 @@ describe('Categories', () => {
         it('should error if you try to set child as parent', async () => {
             const parentCategory = await Categories.create({ name: 'parent 1', description: 'poor parent' });
             const parentCid = parentCategory.cid;
-            const childCategory = await Categories.create({ name: 'child1', description: 'wanna be parent', parentCid: parentCid });
+            const childCategory = await Categories.create({ name: 'child1', description: 'wanna be parent', parentCid });
             const child1Cid = childCategory.cid;
             const updateData = {};
             updateData[parentCid] = {
@@ -522,7 +520,7 @@ describe('Categories', () => {
         it('should copy privileges to children', async () => {
             const parentCategory = await Categories.create({ name: 'parent' });
             const parentCid = parentCategory.cid;
-            const child1 = await Categories.create({ name: 'child1', parentCid: parentCid });
+            const child1 = await Categories.create({ name: 'child1', parentCid });
             const child2 = await Categories.create({ name: 'child2', parentCid: child1.cid });
             await apiCategories.setPrivilege({ uid: adminUid }, {
                 cid: parentCid,
@@ -682,7 +680,7 @@ describe('Categories', () => {
         });
 
         it('should return true if category whitelist is empty', (done) => {
-            socketTopics.isTagAllowed({ uid: posterUid }, { tag: 'notallowed', cid: cid }, (err, allowed) => {
+            socketTopics.isTagAllowed({ uid: posterUid }, { tag: 'notallowed', cid }, (err, allowed) => {
                 assert.ifError(err);
                 assert(allowed);
                 done();
@@ -705,7 +703,7 @@ describe('Categories', () => {
         });
 
         it('should return false if category whitelist does not have tag', (done) => {
-            socketTopics.isTagAllowed({ uid: posterUid }, { tag: 'notallowed', cid: cid }, (err, allowed) => {
+            socketTopics.isTagAllowed({ uid: posterUid }, { tag: 'notallowed', cid }, (err, allowed) => {
                 assert.ifError(err);
                 assert(!allowed);
                 done();
@@ -713,7 +711,7 @@ describe('Categories', () => {
         });
 
         it('should return true if category whitelist has tag', (done) => {
-            socketTopics.isTagAllowed({ uid: posterUid }, { tag: 'nodebb', cid: cid }, (err, allowed) => {
+            socketTopics.isTagAllowed({ uid: posterUid }, { tag: 'nodebb', cid }, (err, allowed) => {
                 assert.ifError(err);
                 assert(allowed);
                 done();
@@ -723,7 +721,7 @@ describe('Categories', () => {
         it('should post a topic with only allowed tags', (done) => {
             Topics.post({
                 uid: posterUid,
-                cid: cid,
+                cid,
                 title: 'Test Topic Title',
                 content: 'The content of test topic',
                 tags: ['nodebb', 'jquery', 'notallowed'],
@@ -734,7 +732,6 @@ describe('Categories', () => {
             });
         });
     });
-
 
     describe('privileges', () => {
         const privileges = require('../src/privileges');
@@ -900,7 +897,6 @@ describe('Categories', () => {
         });
     });
 
-
     describe('getTopicIds', () => {
         const plugins = require('../src/plugins');
         it('should get topic ids with filter', (done) => {
@@ -911,7 +907,7 @@ describe('Categories', () => {
 
             plugins.hooks.register('my-test-plugin', {
                 hook: 'filter:categories.getTopicIds',
-                method: method,
+                method,
             });
 
             Categories.getTopicIds({

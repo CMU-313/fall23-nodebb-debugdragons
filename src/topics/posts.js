@@ -1,4 +1,3 @@
-
 'use strict';
 
 const _ = require('lodash');
@@ -22,7 +21,7 @@ module.exports = function (Topics) {
      * @returns {Promise<void>}
     */
     Topics.onNewPostMade = async function (postData) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof postData === 'object' && postData !== null, 'postData must be an object');
         await Topics.updateLastPostTime(postData.tid, postData.timestamp);
         await Topics.addPostToTopic(postData.tid, postData);
@@ -39,7 +38,7 @@ module.exports = function (Topics) {
      * @returns {Promise<object[]>}
      */
     Topics.getTopicPosts = async function (topicData, set, start, stop, uid, reverse) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof set === 'string' || Array.isArray(set), 'set must be a string or an array of strings');
         assert(typeof start === 'number' && typeof stop === 'number', 'start and stop must be numbers');
         assert(typeof uid === 'number', 'uid must be a number');
@@ -92,7 +91,7 @@ module.exports = function (Topics) {
 
         const result = await plugins.hooks.fire('filter:topic.getPosts', {
             topic: topicData,
-            uid: uid,
+            uid,
             posts: await Topics.addPostData(postData, uid),
         });
         const postsResult = result.posts;
@@ -110,7 +109,7 @@ module.exports = function (Topics) {
      * @returns {Promise<void>}
      */
     async function addEventStartEnd(postData, set, reverse, topicData) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(Array.isArray(postData), 'postData must be an array');
         assert(typeof set === 'string' || Array.isArray(set), 'set must be a string or an array of strings');
         assert(typeof reverse === 'boolean', 'reverse must be a boolean');
@@ -149,7 +148,7 @@ module.exports = function (Topics) {
      * @returns {Promise<object[]>}
      */
     Topics.addPostData = async function (postData, uid) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof uid === 'number' || typeof uid === 'string', 'uid must be a number or string');
         if (!Array.isArray(postData) || !postData.length) {
             return [];
@@ -197,7 +196,7 @@ module.exports = function (Topics) {
 
         const result = await plugins.hooks.fire('filter:topics.addPostData', {
             posts: postData,
-            uid: uid,
+            uid,
         });
         const postResult = result.posts;
         // Assert function return types in the body
@@ -212,7 +211,7 @@ module.exports = function (Topics) {
      * @returns {Promise<void>}
     */
     Topics.modifyPostsByPrivilege = function (topicData, topicPrivileges) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof topicData === 'object', 'topicData must be an object');
         assert(typeof topicPrivileges === 'object', 'topicPrivileges must be a object');
         const loggedIn = parseInt(topicPrivileges.uid, 10) > 0;
@@ -241,7 +240,7 @@ module.exports = function (Topics) {
      * @returns {Promise<void>}
     */
     Topics.addParentPosts = async function (postData) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(Array.isArray(postData), 'postData must be an array');
         let parentPids = postData.map(postObj => (postObj && postObj.hasOwnProperty('toPid') ? parseInt(postObj.toPid, 10) : null)).filter(Boolean);
 
@@ -274,7 +273,7 @@ module.exports = function (Topics) {
      * @returns {Promise<void>}
     */
     Topics.calculatePostIndices = function (posts, start) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof posts === 'object', 'posts must be an object');
         assert(typeof start === 'number', 'start must be a number');
         posts.forEach((post, index) => {
@@ -290,7 +289,7 @@ module.exports = function (Topics) {
      * @returns {Promise<number> || Promise<object>}
     */
     Topics.getLatestUndeletedPid = async function (tid) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         const pid = await Topics.getLatestUndeletedReply(tid);
         if (pid) {
@@ -310,7 +309,7 @@ module.exports = function (Topics) {
      * @returns {Promise<number> || Promise<null>}
     */
     Topics.getLatestUndeletedReply = async function (tid) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         let isDeleted = false;
         let index = 0;
@@ -335,7 +334,7 @@ module.exports = function (Topics) {
      * @returns {Promise<void>}
     */
     Topics.addPostToTopic = async function (tid, postData) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         assert(typeof postData === 'object', 'postData must be an object');
         const mainPid = await Topics.getTopicField(tid, 'mainPid');
@@ -366,7 +365,7 @@ module.exports = function (Topics) {
      * @returns {Promise<void>}
     */
     Topics.removePostFromTopic = async function (tid, postData) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         assert(typeof postData === 'object', 'postData must be an object');
         await db.sortedSetsRemove([
@@ -390,7 +389,7 @@ module.exports = function (Topics) {
      * @returns {Promise<object>}
     */
     Topics.getPids = async function (tid) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         let [mainPid, pids] = await Promise.all([
             Topics.getTopicField(tid, 'mainPid'),
@@ -411,7 +410,7 @@ module.exports = function (Topics) {
      * @returns {Promise<void>}
     */
     Topics.increasePostCount = async function (tid) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         incrementFieldAndUpdateSortedSet(tid, 'postcount', 1, 'topics:posts');
     };
@@ -422,7 +421,7 @@ module.exports = function (Topics) {
      * @returns {Promise<void>}
     */
     Topics.decreasePostCount = async function (tid) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         incrementFieldAndUpdateSortedSet(tid, 'postcount', -1, 'topics:posts');
     };
@@ -433,7 +432,7 @@ module.exports = function (Topics) {
      * @returns {Promise<void>}
     */
     Topics.increaseViewCount = async function (tid) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         const cid = await Topics.getTopicField(tid, 'cid');
         incrementFieldAndUpdateSortedSet(tid, 'viewcount', 1, ['topics:views', `cid:${cid}:tids:views`]);
@@ -445,7 +444,7 @@ module.exports = function (Topics) {
      * @returns {Promise<void>}
     */
     Topics.increaseInstructorCount = async function (tid) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         await db.incrObjectFieldBy(`topic:${tid}`, 'instructorcount', 1);
     };
@@ -456,7 +455,7 @@ module.exports = function (Topics) {
      * @returns {Promise<void>}
     */
     Topics.decreaseInstructorCount = async function (tid) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         await db.incrObjectFieldBy(`topic:${tid}`, 'instructorcount', -1);
     };
@@ -470,7 +469,7 @@ module.exports = function (Topics) {
     * @returns {Promise<void>}
     */
     async function incrementFieldAndUpdateSortedSet(tid, field, by, set) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         assert(typeof field === 'string', 'field must be a string');
         assert(typeof by === 'number', 'by must be a number');
@@ -485,7 +484,7 @@ module.exports = function (Topics) {
      * @returns {Promise<string>}
     */
     Topics.getTitleByPid = async function (pid) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof pid === 'number' || typeof pid === 'string', 'pid must be a number or string');
         const result = await Topics.getTopicFieldByPid('title', pid);
         // Assert function return types in the body
@@ -500,7 +499,7 @@ module.exports = function (Topics) {
      * @returns {Promise<string>}
     */
     Topics.getTopicFieldByPid = async function (field, pid) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof field === 'string', 'field must be a string');
         assert(typeof pid === 'number' || typeof pid === 'string', 'pid must be a number or string');
         const tid = await posts.getPostField(pid, 'tid');
@@ -516,7 +515,7 @@ module.exports = function (Topics) {
      * @returns {Promise<object>}
     */
     Topics.getTopicDataByPid = async function (pid) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof pid === 'number' || typeof pid === 'string', 'pid must be a number or string');
         const tid = await posts.getPostField(pid, 'tid');
         const result = await Topics.getTopicData(tid);
@@ -531,7 +530,7 @@ module.exports = function (Topics) {
      * @returns {Promise<string>}
     */
     Topics.getPostCount = async function (tid) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string', 'tid must be a number or string');
         const result = await db.getObjectField(`topic:${tid}`, 'postcount');
         return result;
@@ -544,7 +543,7 @@ module.exports = function (Topics) {
      * @returns {Promise<object>}
     */
     async function getPostReplies(pids, callerUid) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof pids === 'object', 'pids must be a object');
         assert(typeof callerUid === 'number' || typeof callerUid === 'string', 'callerUid must be a number or string');
         const keys = pids.map(pid => `pid:${pid}:replies`);
@@ -607,7 +606,7 @@ module.exports = function (Topics) {
      * @returns {Promise<number>}
     */
     Topics.syncBacklinks = async (postData) => {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         if (!postData) {
             throw new Error('[[error:invalid-data]]');
         }

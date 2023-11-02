@@ -1,3 +1,4 @@
+'use strict';
 
 const fs = require('fs');
 const path = require('path');
@@ -34,7 +35,7 @@ function find_compiled_js() {
         const tsFilesList = filesList.filter(file => path.extname(file).toLowerCase() === '.ts');
         jsFilesList = jsFilesList.concat(filesList.filter(
             file => path.extname(file).toLowerCase() === '.js' &&
-            tsFilesList.find(tsFile => tsFile === (`${file.replace(/\.[^/.]+$/, '')}.ts`)) !== undefined
+                tsFilesList.find(tsFile => tsFile === (`${file.replace(/\.[^/.]+$/, '')}.ts`)) !== undefined
         ));
     });
 

@@ -55,9 +55,9 @@ function pluginHook(req, res, next) {
     const hook = `action:homepage.get:${res.locals.homePageRoute}`;
 
     plugins.hooks.fire(hook, {
-        req: req,
-        res: res,
-        next: next,
+        req,
+        res,
+        next,
     });
 }
 

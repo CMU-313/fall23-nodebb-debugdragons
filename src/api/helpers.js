@@ -1,6 +1,5 @@
 'use strict';
 
-const url = require('url');
 const user = require('../user');
 const topics = require('../topics');
 const posts = require('../posts');
@@ -18,30 +17,55 @@ exports.setDefaultPostData = function (reqOrSocket, data) {
 };
 
 // creates a slimmed down version of the request object
-exports.buildReqObject = (req, payload) => {
-    req = req || {};
-    const headers = req.headers || (req.request && req.request.headers) || {};
-    const encrypted = req.connection ? !!req.connection.encrypted : false;
-    let { host } = headers;
-    const referer = headers.referer || '';
+exports.buildReqObject = (payload, req = {}) => {
+    // Destructure properties from req with default values where applicable
+    const {
+        headers = {},
+        connection,
+        method,
+        body,
+        session,
+        ip,
+        uid,
+        params,
+    } = req;
 
-    if (!host) {
-        host = url.parse(referer).host || '';
+    // Destructure encrypted flag from the connection
+    const encrypted = connection ? !!connection.encrypted : false;
+
+    // Destructure host and referer from headers with a default empty string for referer
+    const { host: headersHost = '', referer = '' } = headers;
+
+    let host = headersHost;
+    let refererURL;
+
+    try {
+        refererURL = new URL(referer);
+    } catch (error) {
+    // Handle cases where referer is not a valid URL
+        refererURL = new URL('http://127.0.0.1:4567');
     }
 
+    // Use the host from refererURL if headersHost is not available
+    if (!host) {
+        host = refererURL.host;
+    }
+
+    const path = refererURL.pathname + refererURL.search + refererURL.hash;
+
     return {
-        uid: req.uid,
-        params: req.params,
-        method: req.method,
-        body: payload || req.body,
-        session: req.session,
-        ip: req.ip,
-        host: host,
+        uid,
+        params,
+        method,
+        body: payload || body,
+        session,
+        ip,
+        host,
         protocol: encrypted ? 'https' : 'http',
         secure: encrypted,
         url: referer,
-        path: referer.slice(referer.indexOf(host) + host.length),
-        headers: headers,
+        path,
+        headers,
     };
 };
 
@@ -80,7 +104,7 @@ async function logTopicAction(action, req, tid, title) {
         type: `topic-${action}`,
         uid: req.uid,
         ip: req.ip,
-        tid: tid,
+        tid,
         title: String(title),
     });
 }
@@ -119,7 +143,7 @@ exports.postCommand = async function (caller, command, eventName, notification, 
         filter:post.unbookmark
      */
     const filteredData = await plugins.hooks.fire(`filter:post.${command}`, {
-        data: data,
+        data,
         uid: caller.uid,
     });
     return await executeCommand(caller, command, eventName, notification, filteredData.data);

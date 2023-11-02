@@ -24,7 +24,7 @@ module.exports = function (Topics) {
     * @returns {Promise<object>}
     */
     Topics.getTopicsFields = async function (tids, fields) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof fields === 'object', 'Expected fields to be an object');
         if (!Array.isArray(tids) || !tids.length) {
             return [];
@@ -37,10 +37,10 @@ module.exports = function (Topics) {
         const keys = tids.map(tid => `topic:${tid}`);
         const topics = await db.getObjects(keys, fields);
         const result = await plugins.hooks.fire('filter:topic.getFields', {
-            tids: tids,
-            topics: topics,
-            fields: fields,
-            keys: keys,
+            tids,
+            topics,
+            fields,
+            keys,
         });
         result.topics.forEach(topic => modifyTopic(topic, fields));
         const topicsResult = result.topics;
@@ -56,7 +56,7 @@ module.exports = function (Topics) {
     * @returns {Promise<number> || Promise<string> || Promise<boolean>}
     */
     Topics.getTopicField = async function (tid, field) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string' || typeof tid === 'undefined', 'Expected tid to be a number or string or undefined');
         assert(typeof field === 'string', 'Expected field to be a string');
         const topic = await Topics.getTopicFields(tid, [field]);
@@ -73,7 +73,7 @@ module.exports = function (Topics) {
     * @returns {Promise<object>}
     */
     Topics.getTopicFields = async function (tid, fields) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string' || typeof tid === 'undefined', 'Expected tid to be a number or string or undefined');
         assert(typeof fields === 'object', 'Expected fields to be an object');
         const topics = await Topics.getTopicsFields([tid], fields);
@@ -89,7 +89,7 @@ module.exports = function (Topics) {
     * @returns {Promise<object>}
     */
     Topics.getTopicData = async function (tid) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string' || typeof tid === 'undefined', 'Expected tid to be a number or string or undefined');
         const topics = await Topics.getTopicsFields([tid], []);
         const result = topics && topics.length ? topics[0] : null;
@@ -104,7 +104,7 @@ module.exports = function (Topics) {
     * @returns {Promise<object>}
     */
     Topics.getTopicsData = async function (tids) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tids === 'object', 'Expected tids to be an object');
         const result = await Topics.getTopicsFields(tids, []);
         // Assert function return types in the body
@@ -118,7 +118,7 @@ module.exports = function (Topics) {
     * @returns {Promise<object>}
     */
     Topics.getCategoryData = async function (tid) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string' || typeof tid === 'undefined', 'Expected tid to be a number or string or undefined');
         const cid = await Topics.getTopicField(tid, 'cid');
         const result = await categories.getCategoryData(cid);
@@ -135,7 +135,7 @@ module.exports = function (Topics) {
     * @returns {Promise<void>}
     */
     Topics.setTopicField = async function (tid, field, value) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string' || typeof tid === 'undefined', 'Expected tid to be a number or string or undefined');
         assert(typeof field === 'string', 'Expected field to be a string');
         assert(typeof value === 'number', 'Expected value to be a number');
@@ -149,7 +149,7 @@ module.exports = function (Topics) {
     * @returns {Promise<void>}
     */
     Topics.setTopicFields = async function (tid, data) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string' || typeof tid === 'undefined', 'Expected tid to be a number or string or undefined');
         assert(typeof data === 'object', 'Expected data to be an object');
         await db.setObject(`topic:${tid}`, data);
@@ -162,7 +162,7 @@ module.exports = function (Topics) {
     * @returns {Promise<void>}
     */
     Topics.deleteTopicField = async function (tid, field) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string' || typeof tid === 'undefined', 'Expected tid to be a number or string or undefined');
         assert(typeof field === 'string', 'Expected field to be a string');
         await db.deleteObjectField(`topic:${tid}`, field);
@@ -175,7 +175,7 @@ module.exports = function (Topics) {
     * @returns {Promise<void>}
     */
     Topics.deleteTopicFields = async function (tid, fields) {
-        // Assert function parameter types in the body
+    // Assert function parameter types in the body
         assert(typeof tid === 'number' || typeof tid === 'string' || typeof tid === 'undefined', 'Expected tid to be a number or string or undefined');
         assert(typeof fields === 'object', 'Expected fields to be an object');
         await db.deleteObjectFields(`topic:${tid}`, fields);

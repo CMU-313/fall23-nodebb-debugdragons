@@ -7,7 +7,6 @@ const privileges = require('../privileges');
 
 const sockets = require('../socket.io');
 
-
 module.exports = function (Messaging) {
     Messaging.editMessage = async (uid, mid, roomId, content) => {
         await Messaging.checkContent(content);
@@ -17,7 +16,7 @@ module.exports = function (Messaging) {
         }
 
         const payload = await plugins.hooks.fire('filter:messaging.edit', {
-            content: content,
+            content,
             edited: Date.now(),
         });
 
@@ -34,7 +33,7 @@ module.exports = function (Messaging) {
 
         uids.forEach((uid) => {
             sockets.in(`uid_${uid}`).emit('event:chats.edit', {
-                messages: messages,
+                messages,
             });
         });
     };

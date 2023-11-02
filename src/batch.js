@@ -1,4 +1,3 @@
-
 'use strict';
 
 const util = require('util');
@@ -40,7 +39,7 @@ exports.processSortedSet = async function (setKey, process, options) {
     }
 
     while (true) {
-        /* eslint-disable no-await-in-loop */
+    /* eslint-disable no-await-in-loop */
         const ids = await db[`getSortedSetRange${options.withScores ? 'WithScores' : ''}`](setKey, start, stop);
         if (!ids.length || options.doneIf(start, stop, ids)) {
             return;

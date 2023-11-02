@@ -1,4 +1,3 @@
-
 'use strict';
 
 const _ = require('lodash');
@@ -48,9 +47,9 @@ privsPosts.get = async function (pids, uid) {
         const viewHistory = results.isOwner[i] || privData['posts:history'][cid] || results.isAdmin;
 
         return {
-            editable: editable,
+            editable,
             move: isAdminOrMod,
-            isAdminOrMod: isAdminOrMod,
+            isAdminOrMod,
             'topics:read': privData['topics:read'][cid] || results.isAdmin,
             read: privData.read[cid] || results.isAdmin,
             'posts:history': viewHistory,
@@ -106,9 +105,9 @@ privsPosts.filter = async function (privilege, pids, uid) {
     )).map(post => post.pid);
 
     const data = await plugins.hooks.fire('filter:privileges.posts.filter', {
-        privilege: privilege,
-        uid: uid,
-        pids: pids,
+        privilege,
+        uid,
+        pids,
     });
 
     return data ? data.pids : null;
@@ -185,7 +184,7 @@ privsPosts.canDelete = async function (pid, uid) {
     }
     const { deleterUid } = postData;
     const flag = results['posts:delete'] && ((results.isOwner && (deleterUid === 0 || deleterUid === postData.uid)) || results.isMod);
-    return { flag: flag, message: '[[error:no-privileges]]' };
+    return { flag, message: '[[error:no-privileges]]' };
 };
 
 privsPosts.canFlag = async function (pid, uid) {

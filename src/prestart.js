@@ -1,7 +1,6 @@
 'use strict';
 
 const nconf = require('nconf');
-const url = require('url');
 const winston = require('winston');
 const path = require('path');
 const chalk = require('chalk');
@@ -80,19 +79,18 @@ function loadConfig(configFile) {
     nconf.set('upload_path', path.resolve(nconf.get('base_dir'), nconf.get('upload_path')));
     nconf.set('upload_url', '/assets/uploads');
 
-
     // nconf defaults, if not set in config
     if (!nconf.get('sessionKey')) {
         nconf.set('sessionKey', 'express.sid');
     }
 
     if (nconf.get('url')) {
-        nconf.set('url', nconf.get('url').replace(/\/$/, ''));
-        nconf.set('url_parsed', url.parse(nconf.get('url')));
+        const urlValue = nconf.get('url').replace(/\/$/, '');
+        nconf.set('url', urlValue);
         // Parse out the relative_url and other goodies from the configured URL
-        const urlObject = url.parse(nconf.get('url'));
+        const urlObject = new URL(urlValue);
         const relativePath = urlObject.pathname !== '/' ? urlObject.pathname.replace(/\/+$/, '') : '';
-        nconf.set('base_url', `${urlObject.protocol}//${urlObject.host}`);
+        nconf.set('base_url', `${urlObject.protocol}//${urlObject.hostname}`);
         nconf.set('secure', urlObject.protocol === 'https:');
         nconf.set('use_port', !!urlObject.port);
         nconf.set('relative_path', relativePath);

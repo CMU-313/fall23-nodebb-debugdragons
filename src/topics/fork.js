@@ -1,4 +1,3 @@
-
 'use strict';
 
 const db = require('../database');
@@ -41,12 +40,12 @@ module.exports = function (Topics) {
         const scheduled = postData.timestamp > Date.now();
         const params = {
             uid: postData.uid,
-            title: title,
-            cid: cid,
+            title,
+            cid,
             timestamp: scheduled && postData.timestamp,
         };
         const result = await plugins.hooks.fire('filter:topic.fork', {
-            params: params,
+            params,
             tid: postData.tid,
         });
 
@@ -73,7 +72,7 @@ module.exports = function (Topics) {
             Topics.events.log(fromTid, { type: 'fork', uid, href: `/topic/${tid}`, timestamp: postData.timestamp }),
         ]);
 
-        plugins.hooks.fire('action:topic.fork', { tid: tid, fromTid: fromTid, uid: uid });
+        plugins.hooks.fire('action:topic.fork', { tid, fromTid, uid });
 
         return await Topics.getTopicData(tid);
     };
@@ -114,7 +113,7 @@ module.exports = function (Topics) {
             Topics.updateLastPostTimeFromLastPid(tid),
             Topics.updateLastPostTimeFromLastPid(postData.tid),
         ]);
-        plugins.hooks.fire('action:post.move', { uid: callerUid, post: postData, tid: tid });
+        plugins.hooks.fire('action:post.move', { uid: callerUid, post: postData, tid });
     };
 
     async function updateCategory(postData, toTid) {
