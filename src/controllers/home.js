@@ -32,7 +32,7 @@ async function rewrite(req, res, next) {
 
     let parsedUrl;
     try {
-        parsedUrl = new url.URL(route);
+        parsedUrl = url.parse(route, true);
     } catch (err) {
         return next(err);
     }
