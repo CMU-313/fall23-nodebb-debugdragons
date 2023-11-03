@@ -1,4 +1,3 @@
-
 'use strict';
 
 const validator = require('validator');
@@ -94,7 +93,7 @@ events.log = async function (data) {
         ], data.timestamp, eid),
         db.setObject(`event:${eid}`, data),
     ]);
-    plugins.hooks.fire('action:events.log', { data: data });
+    plugins.hooks.fire('action:events.log', { data });
 };
 
 events.getEvents = async function (filter, start, stop, from, to) {

@@ -1,4 +1,3 @@
-
 'use strict';
 
 const _ = require('lodash');
@@ -24,7 +23,6 @@ module.exports = function (User) {
         unverified: ['email:confirmed'],
     };
 
-
     User.search = async function (data) {
         const query = data.query || '';
         const searchBy = data.searchBy || 'username';
@@ -45,7 +43,7 @@ module.exports = function (User) {
         }
 
         uids = await filterAndSortUids(uids, data);
-        const result = await plugins.hooks.fire('filter:users.search', { uids: uids, uid: uid });
+        const result = await plugins.hooks.fire('filter:users.search', { uids, uid });
         uids = result.uids;
 
         const searchResult = {

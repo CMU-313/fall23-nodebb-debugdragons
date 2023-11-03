@@ -2,7 +2,6 @@
 
 const nconf = require('nconf');
 const fs = require('fs');
-const url = require('url');
 const path = require('path');
 const { fork } = require('child_process');
 const logrotate = require('logrotate-stream');
@@ -126,7 +125,7 @@ function forkWorker(index, isPrimary) {
     process.env.port = ports[index];
 
     const worker = fork(appPath, args, {
-        silent: silent,
+        silent,
         env: process.env,
     });
 
@@ -150,12 +149,14 @@ function getPorts() {
         console.log('[cluster] url is undefined, please check your config.json');
         process.exit();
     }
-    const urlObject = url.parse(_url);
+
+    const urlObject = new URL(_url);
     let port = nconf.get('PORT') || nconf.get('port') || urlObject.port || 4567;
     if (!Array.isArray(port)) {
         port = [port];
     }
-    return port;
+
+    return port.map(p => Number(p));
 }
 
 Loader.restart = function () {
@@ -201,7 +202,7 @@ function killWorkers() {
 
 fs.open(pathToConfig, 'r', (err) => {
     if (err) {
-        // No config detected, kickstart web installer
+    // No config detected, kickstart web installer
         fork('app');
         return;
     }

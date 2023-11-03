@@ -32,7 +32,7 @@ async function rewrite(req, res, next) {
 
     let parsedUrl;
     try {
-        parsedUrl = url.parse(route, true);
+        parsedUrl = new url.URL(route);
     } catch (err) {
         return next(err);
     }
@@ -44,7 +44,7 @@ async function rewrite(req, res, next) {
     } else {
         res.locals.homePageRoute = pathname;
     }
-    req.query = Object.assign(parsedUrl.query, req.query);
+    req.query = Object.fromEntries(parsedUrl.searchParams.entries());
 
     next();
 }
@@ -55,9 +55,9 @@ function pluginHook(req, res, next) {
     const hook = `action:homepage.get:${res.locals.homePageRoute}`;
 
     plugins.hooks.fire(hook, {
-        req: req,
-        res: res,
-        next: next,
+        req,
+        res,
+        next,
     });
 }
 

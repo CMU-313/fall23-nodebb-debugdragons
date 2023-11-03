@@ -1,4 +1,3 @@
-
 'use strict';
 
 const _ = require('lodash');
@@ -23,7 +22,7 @@ module.exports = function (Topics) {
     * @returns {number} - ID of topic
     */
     Topics.create = async function (data) {
-        // This is an internal method, consider using Topics.post instead
+    // This is an internal method, consider using Topics.post instead
         if (typeof data !== 'object') {
             throw new TypeError('data parameter should be object');
         }
@@ -32,13 +31,13 @@ module.exports = function (Topics) {
         const tid = await db.incrObjectField('global', 'nextTid');
 
         let topicData = {
-            tid: tid,
+            tid,
             uid: data.uid,
             cid: data.cid,
             mainPid: 0,
             title: data.title,
             slug: `${tid}/${slugify(data.title) || 'topic'}`,
-            timestamp: timestamp,
+            timestamp,
             lastposttime: 0,
             postcount: 0,
             viewcount: 0,
@@ -54,7 +53,7 @@ module.exports = function (Topics) {
             topicData.tags = data.tags.join(',');
         }
 
-        const result = await plugins.hooks.fire('filter:topic.create', { topic: topicData, data: data });
+        const result = await plugins.hooks.fire('filter:topic.create', { topic: topicData, data });
         topicData = result.topic;
 
         await db.setObject(`topic:${topicData.tid}`, topicData);
@@ -88,7 +87,7 @@ module.exports = function (Topics) {
             await Topics.scheduled.pin(tid, topicData);
         }
 
-        plugins.hooks.fire('action:topic.save', { topic: _.clone(topicData), data: data });
+        plugins.hooks.fire('action:topic.save', { topic: _.clone(topicData), data });
         if (typeof topicData.tid !== 'number') {
             throw new TypeError('topicData.tid should be a number');
         }
@@ -171,7 +170,7 @@ module.exports = function (Topics) {
         }
 
         analytics.increment(['topics', `topics:byCid:${topicData.cid}`]);
-        plugins.hooks.fire('action:topic.post', { topic: topicData, post: postData, data: data });
+        plugins.hooks.fire('action:topic.post', { topic: topicData, post: postData, data });
 
         if (parseInt(uid, 10) && !topicData.scheduled) {
             user.notifications.sendTopicNotificationToFollowers(uid, topicData, postData);
@@ -183,8 +182,8 @@ module.exports = function (Topics) {
             throw new TypeError('postData needs to be an object');
         }
         return {
-            topicData: topicData,
-            postData: postData,
+            topicData,
+            postData,
         };
     };
     /**
@@ -245,7 +244,7 @@ module.exports = function (Topics) {
         }
 
         analytics.increment(['posts', `posts:byCid:${data.cid}`]);
-        plugins.hooks.fire('action:topic.reply', { post: _.clone(postData), data: data });
+        plugins.hooks.fire('action:topic.reply', { post: _.clone(postData), data });
         if (typeof postData !== 'object') {
             throw new TypeError('postData must be object');
         }
@@ -332,7 +331,7 @@ module.exports = function (Topics) {
     * @return {Promise<void>}
     */
     function check(item, min, max, minError, maxError) {
-        // Trim and remove HTML (latter for composers that send in HTML, like redactor)
+    // Trim and remove HTML (latter for composers that send in HTML, like redactor)
         if (typeof item !== 'string') {
             throw new TypeError('Item is not a string');
         }

@@ -1,8 +1,6 @@
 'use strict';
 
-
 const assert = require('assert');
-const url = require('url');
 const async = require('async');
 const nconf = require('nconf');
 const request = require('request');
@@ -97,7 +95,7 @@ describe('authentication', () => {
         request({
             url: `${nconf.get('url')}/api/config`,
             json: true,
-            jar: jar,
+            jar,
         }, (err, response, body) => {
             assert.ifError(err);
 
@@ -112,7 +110,7 @@ describe('authentication', () => {
                     gdpr_consent: true,
                 },
                 json: true,
-                jar: jar,
+                jar,
                 headers: {
                     'x-csrf-token': body.csrf_token,
                 },
@@ -126,7 +124,7 @@ describe('authentication', () => {
                 request({
                     url: `${nconf.get('url')}/api/self`,
                     json: true,
-                    jar: jar,
+                    jar,
                 }, (err, response, body) => {
                     assert.ifError(err);
                     assert(body);
@@ -148,7 +146,7 @@ describe('authentication', () => {
             request({
                 url: `${nconf.get('url')}/api/me`,
                 json: true,
-                jar: jar,
+                jar,
             }, (err, res, body) => {
                 assert.ifError(err);
                 assert.equal(res.statusCode, 401);
@@ -183,10 +181,13 @@ describe('authentication', () => {
 
     it('should regenerate the session identifier on successful login', async () => {
         const matchRegexp = /express\.sid=s%3A(.+?);/;
-        const { hostname, path } = url.parse(nconf.get('url'));
+
+        const urlObj = new URL(nconf.get('url'));
+        const { hostname, pathname: path } = urlObj;
 
         const sid = String(jar._jar.store.idx[hostname][path]['express.sid']).match(matchRegexp)[1];
         await helpers.logoutUser(jar);
+
         const newJar = (await helpers.loginUser('regular', 'regularpwd')).jar;
         const newSid = String(newJar._jar.store.idx[hostname][path]['express.sid']).match(matchRegexp)[1];
 
@@ -214,7 +215,7 @@ describe('authentication', () => {
         request({
             url: `${nconf.get('url')}/api/config`,
             json: true,
-            jar: jar,
+            jar,
         }, (err, response, body) => {
             if (err) {
                 return done(err);
@@ -226,7 +227,7 @@ describe('authentication', () => {
                     password: 'regularpwd',
                 },
                 json: true,
-                jar: jar,
+                jar,
                 headers: {
                     'x-csrf-token': body.csrf_token,
                     'x-forwarded-for': '<script>alert("xss")</script>',
@@ -406,7 +407,6 @@ describe('authentication', () => {
         });
     });
 
-
     it('should be able to login with email', async () => {
         const email = 'ginger@nodebb.org';
         const uid = await user.create({ username: 'ginger', password: '123456', email });
@@ -432,14 +432,14 @@ describe('authentication', () => {
         request({
             url: `${nconf.get('url')}/api/config`,
             json: true,
-            jar: jar,
+            jar,
         }, (err, response, body) => {
             assert.ifError(err);
 
             request.post(`${nconf.get('url')}/logout`, {
                 form: {},
                 json: true,
-                jar: jar,
+                jar,
                 headers: {
                     'x-csrf-token': body.csrf_token,
                 },
@@ -582,14 +582,14 @@ describe('authentication', () => {
         });
 
         it('should fail with invalid token', async () => {
-            const { res, body } = await helpers.request('get', `/api/self`, {
+            const { res, body } = await helpers.request('get', '/api/self', {
                 form: {
                     _uid: newUid,
                 },
                 json: true,
-                jar: jar,
+                jar,
                 headers: {
-                    Authorization: `Bearer sdfhaskfdja-jahfdaksdf`,
+                    Authorization: 'Bearer sdfhaskfdja-jahfdaksdf',
                 },
             });
             assert.strictEqual(res.statusCode, 401);
@@ -597,7 +597,7 @@ describe('authentication', () => {
         });
 
         it('should use a token tied to an uid', async () => {
-            const { res, body } = await helpers.request('get', `/api/self`, {
+            const { res, body } = await helpers.request('get', '/api/self', {
                 json: true,
                 headers: {
                     Authorization: `Bearer ${userToken.token}`,
@@ -609,7 +609,7 @@ describe('authentication', () => {
         });
 
         it('should fail if _uid is not passed in with master token', async () => {
-            const { res, body } = await helpers.request('get', `/api/self`, {
+            const { res, body } = await helpers.request('get', '/api/self', {
                 form: {},
                 json: true,
                 headers: {
@@ -622,7 +622,7 @@ describe('authentication', () => {
         });
 
         it('should use master api token and _uid', async () => {
-            const { res, body } = await helpers.request('get', `/api/self`, {
+            const { res, body } = await helpers.request('get', '/api/self', {
                 form: {
                     _uid: newUid,
                 },

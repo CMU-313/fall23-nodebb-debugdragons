@@ -1,4 +1,3 @@
-
 'use strict';
 
 const _ = require('lodash');
@@ -87,7 +86,7 @@ module.exports = function (Topics) {
             return topicPost;
         });
 
-        const result = await plugins.hooks.fire('filter:teasers.get', { teasers: teasers, uid: uid });
+        const result = await plugins.hooks.fire('filter:teasers.get', { teasers, uid });
         return result.teasers;
     };
 

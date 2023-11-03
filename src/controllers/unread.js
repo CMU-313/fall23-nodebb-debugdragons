@@ -1,4 +1,3 @@
-
 'use strict';
 
 const nconf = require('nconf');
@@ -27,11 +26,11 @@ unreadController.get = async function (req, res) {
     const start = Math.max(0, (page - 1) * userSettings.topicsPerPage);
     const stop = start + userSettings.topicsPerPage - 1;
     const data = await topics.getUnreadTopics({
-        cid: cid,
+        cid,
         uid: req.uid,
-        start: start,
-        stop: stop,
-        filter: filter,
+        start,
+        stop,
+        filter,
         query: req.query,
     });
 

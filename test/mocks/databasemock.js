@@ -9,12 +9,10 @@ require('../../require-main');
 
 const path = require('path');
 const nconf = require('nconf');
-const url = require('url');
 const util = require('util');
 
 process.env.NODE_ENV = process.env.TEST_ENV || 'production';
 global.env = process.env.NODE_ENV || 'production';
-
 
 const winston = require('winston');
 const packageInfo = require('../../package.json');
@@ -45,7 +43,7 @@ nconf.defaults({
     relative_path: '',
 });
 
-const urlObject = url.parse(nconf.get('url'));
+const urlObject = new URL(nconf.get('url'));
 const relativePath = urlObject.pathname !== '/' ? urlObject.pathname : '';
 nconf.set('relative_path', relativePath);
 nconf.set('asset_base_url', `${relativePath}/assets`);
@@ -134,7 +132,7 @@ before(async function () {
     this.timeout(30000);
 
     // Parse out the relative_url and other goodies from the configured URL
-    const urlObject = url.parse(nconf.get('url'));
+    const urlObject = new URL(nconf.get('url'));
 
     nconf.set('core_templates_path', path.join(__dirname, '../../src/views'));
     nconf.set('base_templates_path', path.join(nconf.get('themes_path'), 'nodebb-theme-persona/templates'));
@@ -144,7 +142,6 @@ before(async function () {
     nconf.set('version', packageInfo.version);
     nconf.set('runJobs', false);
     nconf.set('jobsDisabled', false);
-
 
     await db.init();
     if (db.hasOwnProperty('createIndices')) {
@@ -173,7 +170,7 @@ before(async function () {
 
     // Iterate over all of the test suites/contexts
     this.test.parent.suites.forEach((suite) => {
-        // Attach an afterAll listener that resets the defaults
+    // Attach an afterAll listener that resets the defaults
         suite.afterAll(async () => {
             await setupMockDefaults();
         });
@@ -219,7 +216,7 @@ async function setupMockDefaults() {
         'test/uploads/profile',
     ];
     for (const folder of folders) {
-        /* eslint-disable no-await-in-loop */
+    /* eslint-disable no-await-in-loop */
         await mkdirp(folder);
     }
 }

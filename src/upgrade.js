@@ -1,4 +1,3 @@
-
 'use strict';
 
 const path = require('path');
@@ -126,7 +125,7 @@ Upgrade.process = async function (files, skipCount) {
     ]);
 
     for (const file of files) {
-        /* eslint-disable no-await-in-loop */
+    /* eslint-disable no-await-in-loop */
         const scriptExport = require(file);
         const date = new Date(scriptExport.timestamp);
         const version = path.dirname(file).split('/').pop();
@@ -136,7 +135,7 @@ Upgrade.process = async function (files, skipCount) {
             total: 0,
             incr: Upgrade.incrementProgress,
             script: scriptExport,
-            date: date,
+            date,
         };
 
         process.stdout.write(`${chalk.white('  → ') + chalk.gray(`[${[date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate()].join('/')}] `) + scriptExport.name}...`);
@@ -159,7 +158,7 @@ Upgrade.process = async function (files, skipCount) {
         const upgradeStart = Date.now();
         try {
             await scriptExport.method.bind({
-                progress: progress,
+                progress,
             })();
         } catch (err) {
             console.error('Error occurred');

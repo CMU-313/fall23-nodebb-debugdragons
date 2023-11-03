@@ -1,4 +1,3 @@
-
 'use strict';
 
 const db = require('../database');
@@ -44,7 +43,7 @@ module.exports = function (Topics) {
         }
         await method1(tid, uid);
         await method2(tid, uid);
-        plugins.hooks.fire(hook, { uid: uid, tid: tid });
+        plugins.hooks.fire(hook, { uid, tid });
     }
 
     async function follow(tid, uid) {

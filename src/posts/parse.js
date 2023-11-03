@@ -1,7 +1,6 @@
 'use strict';
 
 const nconf = require('nconf');
-const url = require('url');
 const winston = require('winston');
 const sanitize = require('sanitize-html');
 const _ = require('lodash');
@@ -13,10 +12,10 @@ const utils = require('../utils');
 
 let sanitizeConfig = {
     allowedTags: sanitize.defaults.allowedTags.concat([
-        // Some safe-to-use tags to add
+    // Some safe-to-use tags to add
         'sup', 'ins', 'del', 'img', 'button',
         'video', 'audio', 'iframe', 'embed',
-        // 'sup' still necessary until https://github.com/apostrophecms/sanitize-html/pull/422 merged
+    // 'sup' still necessary until https://github.com/apostrophecms/sanitize-html/pull/422 merged
     ]),
     allowedAttributes: {
         ...sanitize.defaults.allowedAttributes,
@@ -60,7 +59,7 @@ module.exports = function (Posts) {
             return postData;
         }
 
-        const data = await plugins.hooks.fire('filter:parse.post', { postData: postData });
+        const data = await plugins.hooks.fire('filter:parse.post', { postData });
         data.postData.content = translator.escape(data.postData.content);
         if (data.postData.pid) {
             cache.set(pid, data.postData.content);
@@ -70,36 +69,32 @@ module.exports = function (Posts) {
 
     Posts.parseSignature = async function (userData, uid) {
         userData.signature = sanitizeSignature(userData.signature || '');
-        return await plugins.hooks.fire('filter:parse.signature', { userData: userData, uid: uid });
+        return await plugins.hooks.fire('filter:parse.signature', { userData, uid });
     };
 
     Posts.relativeToAbsolute = function (content, regex) {
-        // Turns relative links in content to absolute urls
+    // Turns relative links in content to absolute urls
         if (!content) {
             return content;
         }
-        let parsed;
         let current = regex.regex.exec(content);
         let absolute;
         while (current !== null) {
             if (current[1]) {
                 try {
-                    parsed = url.parse(current[1]);
-                    if (!parsed.protocol) {
-                        if (current[1].startsWith('/')) {
-                            // Internal link
-                            absolute = nconf.get('base_url') + current[1];
-                        } else {
-                            // External link
-                            absolute = `//${current[1]}`;
-                        }
+                    // The new URL constructor throws an error if the URL is not absolute.
+                    // So, if the URL starts with a '/', it's an internal link, and the base URL is prepended.
+                    // If it doesn't start with '/', it's treated as an external link.
+                    absolute = current[1].startsWith('/') ?
+                        new URL(current[1], nconf.get('base_url')).href :
+                        `//${current[1]}`;
 
-                        content = content.slice(0, current.index + regex.length) +
+                    // Replace the matched URL in the content with the absolute URL
+                    content = content.slice(0, current.index + regex.length) +
                         absolute +
                         content.slice(current.index + regex.length + current[1].length);
-                    }
                 } catch (err) {
-                    winston.verbose(err.messsage);
+                    winston.verbose(err.message);
                 }
             }
             current = regex.regex.exec(content);
@@ -117,7 +112,7 @@ module.exports = function (Posts) {
     };
 
     Posts.configureSanitize = async () => {
-        // Each allowed tags should have some common global attributes...
+    // Each allowed tags should have some common global attributes...
         sanitizeConfig.allowedTags.forEach((tag) => {
             sanitizeConfig.allowedAttributes[tag] = _.union(
                 sanitizeConfig.allowedAttributes[tag],

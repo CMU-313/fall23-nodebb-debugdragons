@@ -1,7 +1,6 @@
 'use strict';
 
 const fs = require('fs');
-const url = require('url');
 const path = require('path');
 const prompt = require('prompt');
 const winston = require('winston');
@@ -158,7 +157,7 @@ async function setupConfig() {
     let config = {};
 
     if (install.values) {
-        // Use provided values, fall back to defaults
+    // Use provided values, fall back to defaults
         const redisQuestions = require('./database/redis').questions;
         const mongoQuestions = require('./database/mongo').questions;
         const postgresQuestions = require('./database/postgres').questions;
@@ -204,23 +203,31 @@ async function completeConfigSetup(config) {
     }
 
     // Sanity-check/fix url/port
+    let urlObj;
     if (!/^http(?:s)?:\/\//.test(config.url)) {
         config.url = `http://${config.url}`;
     }
 
+    try {
+        urlObj = new URL(config.url);
+    } catch (error) {
+        throw new Error(`Invalid URL provided: ${config.url}`);
+    }
+
     // If port is explicitly passed via install vars, use it. Otherwise, glean from url if set.
-    const urlObj = url.parse(config.url);
     if (urlObj.port && (!install.values || !install.values.hasOwnProperty('port'))) {
         config.port = urlObj.port;
+    } else if (install.values && install.values.hasOwnProperty('port')) {
+        urlObj.port = install.values.port;
+        config.port = install.values.port;
     }
 
     // Remove trailing slash from non-subfolder installs
-    if (urlObj.path === '/') {
-        urlObj.path = '';
+    if (urlObj.pathname === '/') {
         urlObj.pathname = '';
     }
 
-    config.url = url.format(urlObj);
+    config.url = urlObj.href; // 'href' returns the formatted URL
 
     // ref: https://github.com/indexzero/nconf/issues/300
     delete config.type;
@@ -262,7 +269,7 @@ async function createDefaultUserGroups() {
     const groups = require('./groups');
     async function createGroup(name) {
         await groups.create({
-            name: name,
+            name,
             hidden: 1,
             private: 1,
             system: 1,
@@ -367,7 +374,7 @@ async function createAdmin() {
     }
 
     async function retryPassword(originalResults) {
-        // Ask only the password questions
+    // Ask only the password questions
         const results = await prompt.get(passwordQuestions);
 
         // Update the original data with newly collected password
@@ -450,7 +457,7 @@ async function createCategories() {
         await fs.promises.readFile(path.join(__dirname, '../', 'install/data/categories.json'), 'utf8')
     );
     for (const categoryData of default_categories) {
-        // eslint-disable-next-line no-await-in-loop
+    // eslint-disable-next-line no-await-in-loop
         await Categories.create(categoryData);
     }
 }
@@ -482,7 +489,7 @@ async function createWelcomePost() {
             uid: 1,
             cid: 2,
             title: 'Welcome to your NodeBB!',
-            content: content,
+            content,
         });
     }
 }

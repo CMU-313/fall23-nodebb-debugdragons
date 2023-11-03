@@ -1,4 +1,3 @@
-
 'use strict';
 
 const nconf = require('nconf');
@@ -138,7 +137,7 @@ UserEmail.sendValidationEmail = async function (uid, options) {
 
     await db.setObject(`confirm:${confirm_code}`, {
         email: options.email.toLowerCase(),
-        uid: uid,
+        uid,
     });
     await db.pexpire(`confirm:${confirm_code}`, emailConfirmExpiry * 24 * 60 * 60 * 1000);
 
@@ -151,7 +150,7 @@ UserEmail.sendValidationEmail = async function (uid, options) {
     });
 
     if (plugins.hooks.hasListeners('action:user.verify')) {
-        plugins.hooks.fire('action:user.verify', { uid: uid, data: data });
+        plugins.hooks.fire('action:user.verify', { uid, data });
     } else {
         await emailer.send(data.template, uid, data);
     }
@@ -208,5 +207,5 @@ UserEmail.confirmByUid = async function (uid) {
         user.email.expireValidation(uid),
         user.reset.cleanByUid(uid),
     ]);
-    await plugins.hooks.fire('action:user.email.confirmed', { uid: uid, email: currentEmail });
+    await plugins.hooks.fire('action:user.email.confirmed', { uid, email: currentEmail });
 };

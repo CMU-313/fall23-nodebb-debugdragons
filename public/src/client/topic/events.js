@@ -1,6 +1,4 @@
-
 'use strict';
-
 
 define('forum/topic/events', [
     'forum/topic/postTools',

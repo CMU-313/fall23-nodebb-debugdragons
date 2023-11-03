@@ -114,7 +114,7 @@ async function onMessage(socket, payload) {
 
     const eventName = payload.data[0];
     const params = typeof payload.data[1] === 'function' ? {} : payload.data[1];
-    const callback = typeof payload.data[payload.data.length - 1] === 'function' ? payload.data[payload.data.length - 1] : function () {};
+    const callback = typeof payload.data[payload.data.length - 1] === 'function' ? payload.data[payload.data.length - 1] : function () { };
 
     if (!eventName) {
         return winston.warn('[socket.io] Empty method name');
@@ -134,7 +134,8 @@ async function onMessage(socket, payload) {
             winston.warn(`[socket.io] Unrecognized message: ${eventName}`);
         }
         const escapedName = validator.escape(String(eventName));
-        return callback({ message: `[[error:invalid-event, ${escapedName}]]` });
+        const error = { message: `[[error:invalid-event, ${escapedName}]]` };
+        return callback(error);
     }
 
     socket.previousEvents = socket.previousEvents || [];
@@ -166,7 +167,8 @@ async function onMessage(socket, payload) {
         }
     } catch (err) {
         winston.error(`${eventName}\n${err.stack ? err.stack : err.message}`);
-        callback({ message: err.message });
+        const error = { message: err.message };
+        callback(error);
     }
 }
 

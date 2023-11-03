@@ -406,14 +406,12 @@ ajaxify.widgets = { render: render };
                 }
 
                 if (xhr.getResponseHeader('X-Redirect')) {
-                    return callback({
-                        data: {
-                            status: 302,
-                            responseJSON: data,
-                        },
-                        textStatus: 'error',
-                    });
+                    var error = new Error('Redirection detected');
+                    error.status = 302;
+                    error.responseJSON = data;
+                    return callback(error);
                 }
+
 
                 ajaxify.data = data;
                 data.config = config;
@@ -422,16 +420,15 @@ ajaxify.widgets = { render: render };
 
                 callback(null, data);
             },
-            error: function (data, textStatus) {
-                if (data.status === 0 && textStatus === 'error') {
-                    data.status = 500;
-                    data.responseJSON = data.responseJSON || {};
-                    data.responseJSON.error = '[[error:no-connection]]';
-                }
-                callback({
-                    data: data,
-                    textStatus: textStatus,
-                });
+            error: function (jqXHR, textStatus) {
+                // Create a new Error object and include relevant information from the jqXHR object
+                var error = new Error('Ajax request failed: ' + textStatus);
+                error.status = jqXHR.status;
+                error.statusText = jqXHR.statusText;
+                error.responseJSON = jqXHR.responseJSON;
+
+                // Invoke the callback with the error object
+                callback(error, null);
             },
         });
     };
