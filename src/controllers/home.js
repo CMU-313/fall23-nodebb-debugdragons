@@ -32,11 +32,7 @@ async function rewrite(req, res, next) {
 
     let parsedUrl;
     try {
-        let route1 = route;
-        if (route1.startsWith('//')) {
-            route1 = `http:${route1}`;
-        }
-        parsedUrl = url.URL(route1);
+        parsedUrl = url.URL(route);
     } catch (err) {
         return next(err);
     }
@@ -48,7 +44,7 @@ async function rewrite(req, res, next) {
     } else {
         res.locals.homePageRoute = pathname;
     }
-    req.query = Object.assign(parsedUrl.query, req.query);
+    req.query = Object.fromEntries(parsedUrl.searchParams.entries());
 
     next();
 }
