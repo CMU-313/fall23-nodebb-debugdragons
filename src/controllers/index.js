@@ -346,7 +346,8 @@ Controllers.outgoing = function ({ query }, res, next) {
     ];
 
     try {
-        const { protocol } = new URL(urlString);
+        const baseUrl = 'http://127.0.0.1:4567/';
+        const { protocol } = new URL(urlString, baseUrl);
 
         // Check if the protocol is allowed
         if (!urlString || !allowedProtocols.includes(protocol)) {
