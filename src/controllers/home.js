@@ -31,8 +31,9 @@ async function rewrite(req, res, next) {
     }
 
     let parsedUrl;
+    let baseUrl = 'http://127.0.0.1:4567/';
     try {
-        parsedUrl = new url.URL(route);
+        parsedUrl = new url.URL(route, baseUrl);
     } catch (err) {
         return next(err);
     }
