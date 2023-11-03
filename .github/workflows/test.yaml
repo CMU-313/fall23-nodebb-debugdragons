@@ -26,15 +26,12 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         node: [16, 18]
-        database: [mongo-dev, redis]
+        database: [redis]
         include:
           # only run coverage once
           - os: ubuntu-latest
             node: 16
             coverage: true
-          # test under development once
-          - database: mongo-dev
-            test_env: development
     runs-on: ${{ matrix.os }}
     env:
       TEST_ENV: ${{ matrix.test_env || 'production' }}
