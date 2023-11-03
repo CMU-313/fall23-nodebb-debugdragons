@@ -32,7 +32,7 @@ async function rewrite(req, res, next) {
 
     let parsedUrl;
     try {
-        parsedUrl = url.URL(route);
+        parsedUrl = url.parse(route, true);
     } catch (err) {
         return next(err);
     }
@@ -44,7 +44,7 @@ async function rewrite(req, res, next) {
     } else {
         res.locals.homePageRoute = pathname;
     }
-    req.query = Object.fromEntries(parsedUrl.searchParams.entries());
+    req.query = Object.assign(parsedUrl.query, req.query);
 
     next();
 }
